@@ -46,9 +46,9 @@ export async function buildProofPacketZip(order: ServerOrder, pdfBytes: Uint8Arr
   zip.file("letter.pdf", pdfBytes);
   zip.file(
     "proof.json",
-    JSON.stringify(
+      JSON.stringify(
       {
-        packetType: "mailmypdf-proof-packet",
+        packetType: "proofpost-proof-packet",
         generatedAt: new Date().toISOString(),
         order: {
           id: order.id,
@@ -102,7 +102,7 @@ export async function buildProofPacketZip(order: ServerOrder, pdfBytes: Uint8Arr
   zip.file(
     "receipt.txt",
     [
-      "MailMyPDF Proof Packet Receipt",
+      "ProofPost Proof Packet Receipt",
       `Order ID: ${order.id}`,
       `Status: ${order.status}`,
       `Pages: ${order.page_count ?? 0}`,

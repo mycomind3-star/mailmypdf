@@ -28,7 +28,7 @@ export async function POST(request: Request) {
           price_data: {
             currency: order.currency ?? "usd",
             product_data: {
-              name: "MailMyPDF letter",
+              name: "ProofPost letter",
               description: `${order.page_count ?? 0} pages`,
             },
             unit_amount: order.price_cents ?? 499,

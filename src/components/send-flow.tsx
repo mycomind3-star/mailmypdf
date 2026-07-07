@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { appendDemoEvent, patchDemoOrder, upsertDemoOrder } from "@/lib/demo-store";
 import { calculateLetterPrice, pricingCopy } from "@/lib/pricing";
 import { detectPdfPageCount } from "@/lib/pdf";
+import { templates, type Template } from "@/lib/templates";
 import { formatMoney } from "@/lib/utils";
 import { Button, Card, Input, Label, SectionHeading } from "./ui";
 
@@ -124,13 +125,16 @@ const useLiveStripeCheckout = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
 );
 
-export function SendFlow() {
+export function SendFlow({ templates: availableTemplates = templates }: { templates?: Template[] }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [draft, setDraft] = useState<DraftOrder>(() => emptyDraft());
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [error, setError] = useState("");
   const [uploading, setUploading] = useState(false);
   const [paying, setPaying] = useState(false);
+  const [templateId, setTemplateId] = useState(searchParams.get("template") ?? availableTemplates[0]?.id ?? "");
+  const selectedTemplate = availableTemplates.find((item) => item.id === templateId) ?? availableTemplates[0];
 
   const priceQuote = draft.pageCount ? pricingCopy(draft.pageCount) : null;
   const finalPriceCents = draft.pageCount ? calculateLetterPrice(draft.pageCount) : 0;
@@ -391,8 +395,8 @@ export function SendFlow() {
   return (
     <div className="container-shell py-10 md:py-14">
       <SectionHeading
-        title="Upload → Address → Review → Pay"
-        description="A simple, U.S.-only send flow that keeps the paperwork boring and the controls obvious."
+        title="Template → Upload → Address → Review → Pay"
+        description="Start from a formal template or upload your own PDF, then lock the price before checkout."
       />
 
       <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_0.84fr]">
@@ -400,8 +404,8 @@ export function SendFlow() {
           <div className="border-b border-[color:var(--border)] px-6 py-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-[color:var(--foreground)]">Send a PDF</p>
-                <p className="mt-1 text-sm text-[color:var(--muted)]">PDF only. Max 10MB. Max 10 pages.</p>
+                <p className="text-sm font-semibold text-[color:var(--foreground)]">Send a formal letter</p>
+                <p className="mt-1 text-sm text-[color:var(--muted)]">PDF only. Max 10MB. Max 10 pages. U.S. mail only.</p>
               </div>
               <div className="flex items-center gap-2 rounded-full border border-[color:var(--border)] bg-[color:var(--surface-muted)] p-1 text-xs font-semibold">
                 {["Upload", "Addresses", "Review", "Pay"].map((item, index) => (
@@ -420,6 +424,30 @@ export function SendFlow() {
             {step === 1 ? (
               <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
                 <div>
+                  <Label>Template</Label>
+                  <select
+                    className="h-11 w-full rounded-md border border-[color:var(--border)] bg-white px-3 text-sm text-[color:var(--foreground)] shadow-sm transition focus:border-[color:var(--accent)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent-soft)]"
+                    value={templateId}
+                    onChange={(event) => setTemplateId(event.target.value)}
+                  >
+                    {availableTemplates.map((template) => (
+                      <option key={template.id} value={template.id}>
+                        {template.title}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="mt-3 rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface-muted)] p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-semibold text-[color:var(--foreground)]">{selectedTemplate?.title}</p>
+                      <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600">
+                        {selectedTemplate?.category}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-[color:var(--muted)]">{selectedTemplate?.summary}</p>
+                    <p className="mt-3 text-sm leading-6 text-[color:var(--foreground)]">{selectedTemplate?.body}</p>
+                    <p className="mt-3 text-xs leading-5 text-slate-500">{selectedTemplate?.disclaimer}</p>
+                  </div>
+
                   <Label>Email</Label>
                   <Input
                     value={draft.email}
@@ -463,6 +491,11 @@ export function SendFlow() {
 
                 <div className="space-y-4 rounded-2xl border border-[color:var(--border)] bg-white p-5">
                   <p className="text-sm font-semibold text-[color:var(--foreground)]">Uploaded file</p>
+                  <div className="rounded-xl border border-[color:var(--border)] bg-[color:var(--surface-muted)] p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Starting point</p>
+                    <p className="mt-2 text-sm font-semibold text-[color:var(--foreground)]">{selectedTemplate?.title}</p>
+                    <p className="mt-1 text-sm text-[color:var(--muted)]">{selectedTemplate?.summary}</p>
+                  </div>
                   {draft.fileName ? (
                     <div className="rounded-xl border border-[color:var(--border)] bg-[color:var(--surface-muted)] p-4">
                       <p className="text-sm font-semibold text-[color:var(--foreground)]">{draft.fileName}</p>
@@ -582,7 +615,7 @@ export function SendFlow() {
                         onChange={(event) => updateDraft({ reviewAccepted: event.target.checked })}
                       />
                       <span>
-                        I reviewed the document and addresses. I understand MailMyPDF prints and mails the document exactly as submitted.
+                        I reviewed the document and addresses. I understand ProofPost prints and mails the document exactly as submitted.
                       </span>
                     </label>
                     <label className="flex items-start gap-3 rounded-2xl border border-[color:var(--border)] p-4 text-sm leading-6 text-[color:var(--foreground)]">
@@ -592,7 +625,7 @@ export function SendFlow() {
                         checked={draft.termsAccepted}
                         onChange={(event) => updateDraft({ termsAccepted: event.target.checked })}
                       />
-                      <span>I agree not to use MailMyPDF to send unlawful, threatening, fraudulent, or abusive content.</span>
+                      <span>I agree not to use ProofPost to send unlawful, threatening, fraudulent, or abusive content.</span>
                     </label>
                     {error ? <p className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{error}</p> : null}
                     <div className="flex flex-wrap gap-3">
@@ -636,11 +669,11 @@ export function SendFlow() {
           <Card className="p-6">
             <p className="text-sm font-semibold text-[color:var(--foreground)]">What happens next</p>
             <ul className="mt-4 space-y-3 text-sm leading-6 text-[color:var(--muted)]">
-              <li>1. Stripe Checkout receives the payment.</li>
-              <li>2. The letter is submitted to the mail partner.</li>
-              <li>3. You get a confirmation page and secure order link.</li>
-              <li>4. Download a proof packet with the PDF, receipt, and timeline.</li>
-              <li>5. The order timeline updates as the provider status changes.</li>
+              <li>1. Choose a formal template or upload your own PDF.</li>
+              <li>2. Stripe Checkout receives the payment.</li>
+              <li>3. The letter is submitted to the mail partner.</li>
+              <li>4. You get a confirmation page and secure order link.</li>
+              <li>5. Download a proof packet with the PDF, receipt, and timeline.</li>
             </ul>
           </Card>
 

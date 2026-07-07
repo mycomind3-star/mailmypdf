@@ -74,7 +74,7 @@ export async function POST(request: Request) {
       try {
         await sendOrderEmail(
           order.email,
-          "We received your MailMyPDF order",
+          "We received your ProofPost order",
           `<p>Payment received.</p><p>Your order link: <a href="${getAppUrl()}/orders/${order.id}?token=${order.public_lookup_token}">${getAppUrl()}/orders/${order.id}?token=${order.public_lookup_token}</a></p>`,
         );
       } catch (error) {

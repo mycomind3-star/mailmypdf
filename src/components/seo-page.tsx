@@ -19,6 +19,9 @@ export function SeoPage({
         <p className="mt-6 max-w-2xl text-lg leading-8 text-[color:var(--muted)]">{description}</p>
         <div className="mt-8 flex flex-wrap gap-4">
           <Button href="/send">Upload PDF</Button>
+          <Button href="/templates" variant="secondary">
+            View Templates
+          </Button>
           <Button href="/#how-it-works" variant="secondary">
             How it works
           </Button>
@@ -29,13 +32,13 @@ export function SeoPage({
         <Card className="p-6">
           <SectionHeading
             title="How it works"
-            description="The same simple sequence: upload a PDF, enter the address, review, and pay."
+            description="The same simple sequence: pick a template, upload a PDF, enter the address, review, and pay."
           />
           <div className="mt-8 space-y-5 text-sm leading-6 text-[color:var(--muted)]">
-            <p>1. Upload the PDF you want mailed.</p>
+            <p>1. Start from a template or upload the PDF you want mailed.</p>
             <p>2. Add sender and recipient details.</p>
             <p>3. Review the file name, page count, and price.</p>
-            <p>4. Pay online and receive a secure order link.</p>
+            <p>4. Pay online and receive a secure order link and proof packet.</p>
           </div>
         </Card>
 
@@ -43,20 +46,20 @@ export function SeoPage({
           <Card className="p-6">
             <h2 className="text-lg font-semibold text-[color:var(--foreground)]">Common documents people mail</h2>
             <ul className="mt-4 space-y-2 text-sm leading-6 text-[color:var(--muted)]">
+              <li>• Formal notices</li>
+              <li>• Records requests</li>
               <li>• Business letters</li>
-              <li>• Forms and notices</li>
-              <li>• Support documents</li>
-              <li>• Personal letters</li>
+              <li>• Housing correspondence</li>
             </ul>
           </Card>
           <Card className="p-6">
             <h2 className="text-lg font-semibold text-[color:var(--foreground)]">Pricing</h2>
             <p className="mt-3 text-sm leading-6 text-[color:var(--muted)]">
-              Starting at $4.99 for 1-2 pages, black-and-white, U.S. mail only.
+              Starting at $4.99 for 1-2 pages, black-and-white, U.S. mail only, with proof records included.
             </p>
             <div className="mt-5">
               <Button href="/send" variant="dark">
-                Upload PDF
+                Create a Proof File
               </Button>
             </div>
           </Card>
@@ -65,4 +68,3 @@ export function SeoPage({
     </div>
   );
 }
-

@@ -1,7 +1,9 @@
 export const navLinks = [
-  { href: "#how-it-works", label: "How it works" },
-  { href: "#pricing", label: "Pricing" },
-  { href: "#faq", label: "FAQ" },
+  { href: "/", label: "Home" },
+  { href: "/templates", label: "Templates" },
+  { href: "/send", label: "Send" },
+  { href: "/#pricing", label: "Pricing" },
+  { href: "/#faq", label: "FAQ" },
 ] as const;
 
 export const howItWorks = [
@@ -11,7 +13,7 @@ export const howItWorks = [
   },
   {
     title: "Enter addresses",
-    body: "Add the sender and recipient details. U.S. domestic mailing only in this version.",
+    body: "Add the sender and recipient details. U.S. domestic mailing only.",
   },
   {
     title: "Review carefully",
@@ -51,6 +53,10 @@ export const faqItems = [
     answer: "No. Guest checkout is the default.",
   },
   {
+    question: "Can I use this for legal letters?",
+    answer: "Yes for formal mail and recordkeeping, but review anything time-sensitive or rights-affecting with counsel first.",
+  },
+  {
     question: "Can I send international mail?",
     answer: "No. U.S. domestic mail only.",
   },
@@ -64,7 +70,7 @@ export const faqItems = [
   },
   {
     question: "Is this certified mail?",
-    answer: "No. MailMyPDF is not a certified mail replacement.",
+    answer: "No. ProofPost is not a certified mail replacement.",
   },
 ] as const;
 
@@ -89,70 +95,70 @@ export const orderStatusLabels: Record<string, string> = {
 export const seoPages = [
   {
     slug: "mail-a-pdf",
-    title: "Mail a PDF",
+    title: "Mail a PDF | ProofPost",
     heading: "Mail a PDF online",
     description:
       "Upload a PDF, enter the recipient address, and have it printed and mailed for you.",
   },
   {
     slug: "send-letter-online",
-    title: "Send a Letter Online",
+    title: "Send a Letter Online | ProofPost",
     heading: "Send a letter online",
     description:
       "Skip the printer and post office. Upload, address, review, and pay from your browser.",
   },
   {
     slug: "send-a-letter-without-a-printer",
-    title: "Send a Letter Without a Printer",
+    title: "Send a Letter Without a Printer | ProofPost",
     heading: "Send a letter without a printer",
     description:
       "Upload your PDF, pay online, and mail it as a real physical letter.",
   },
   {
     slug: "print-and-mail-pdf-online",
-    title: "Print and Mail PDF Online",
+    title: "Print and Mail PDF Online | ProofPost",
     heading: "Print and mail a PDF online",
     description:
-      "MailMyPDF is a simple U.S.-only workflow for turning PDFs into physical letters.",
+      "ProofPost is a simple U.S.-only workflow for turning PDFs into physical letters.",
   },
   {
     slug: "send-documents-by-mail-online",
-    title: "Send Documents by Mail Online",
+    title: "Send Documents by Mail Online | ProofPost",
     heading: "Send documents by mail online",
     description:
       "For documents you want printed and mailed without handling envelopes or stamps.",
   },
   {
     slug: "send-letter-to-irs",
-    title: "Send a Letter to the IRS",
+    title: "Send a Letter to the IRS | ProofPost",
     heading: "Send a letter to the IRS online",
     description:
-      "MailMyPDF helps you print and mail documents. We do not provide tax advice or guarantee acceptance.",
+      "ProofPost helps you print and mail documents. We do not provide tax advice or guarantee acceptance.",
   },
   {
     slug: "send-letter-to-social-security",
-    title: "Send a Letter to Social Security",
+    title: "Send a Letter to Social Security | ProofPost",
     heading: "Send a letter to Social Security online",
     description:
       "Use the same simple workflow to mail a PDF without a printer.",
   },
   {
     slug: "send-letter-to-dmv",
-    title: "Send a Letter to the DMV",
+    title: "Send a Letter to the DMV | ProofPost",
     heading: "Send a letter to the DMV online",
     description:
       "Upload a PDF, confirm the address, and pay online before we mail it.",
   },
   {
     slug: "send-letter-to-landlord",
-    title: "Send a Letter to Your Landlord",
+    title: "Send a Letter to Your Landlord | ProofPost",
     heading: "Send a letter to your landlord online",
     description:
       "A straightforward way to print and mail a document to a landlord or property manager.",
   },
   {
     slug: "send-business-letter-online",
-    title: "Send a Business Letter Online",
+    title: "Send a Business Letter Online | ProofPost",
     heading: "Send a business letter online",
     description:
       "Turn a PDF into a mailed business letter without handling printing or postage.",

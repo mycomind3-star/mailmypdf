@@ -7,7 +7,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-30 border-b border-[color:var(--border)] bg-[rgba(251,250,247,0.92)] backdrop-blur">
       <div className="container-shell flex h-20 items-center justify-between">
         <Link href="/" className="serif-heading text-2xl font-normal text-[color:var(--foreground)]">
-          MailMyPDF
+          ProofPost
         </Link>
         <nav className="hidden items-center gap-8 md:flex">
           {navLinks.map((link) => (
@@ -26,12 +26,12 @@ export function SiteHeader() {
             Log in
           </Link>
           <Button href="/send" className="px-4 py-2.5">
-            Upload PDF
+            Create a Proof File
           </Button>
         </nav>
         <div className="md:hidden">
           <Button href="/send" className="px-4 py-2.5">
-            Upload PDF
+            Create a Proof File
           </Button>
         </div>
       </div>

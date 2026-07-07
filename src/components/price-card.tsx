@@ -27,7 +27,7 @@ export function PriceCard({
           <li>Print, envelope, and postage included</li>
           <li>U.S. First-Class Mail</li>
           <li>No subscription required</li>
-          <li>Pay only when you send</li>
+          <li>Proof packet included</li>
         </ul>
       </div>
     </Card>

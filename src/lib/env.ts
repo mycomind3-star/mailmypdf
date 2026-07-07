@@ -54,5 +54,5 @@ export function getAppUrl() {
 }
 
 export function getResendFromEmail() {
-  return getEnv().RESEND_FROM_EMAIL || "MailMyPDF <onboarding@resend.dev>";
+  return getEnv().RESEND_FROM_EMAIL || "ProofPost <onboarding@resend.dev>";
 }
