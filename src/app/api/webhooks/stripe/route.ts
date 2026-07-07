@@ -10,7 +10,7 @@ import {
   submitOrderToLob,
   updateOrder,
 } from "@/lib/orders";
-import { hasStripeEnv, getAppUrl } from "@/lib/env";
+import { getAppUrl, hasStripeEnv, shouldAutoSubmitToLob } from "@/lib/env";
 
 export async function POST(request: Request) {
   if (!hasStripeEnv()) {
@@ -83,16 +83,18 @@ export async function POST(request: Request) {
         });
       }
 
-      try {
-        await submitOrderToLob(order.id);
-      } catch (error) {
-        await updateOrder(order.id, {
-          status: "failed_provider_submission",
-          failed_at: new Date().toISOString(),
-        });
-        await addOrderEvent(order.id, "provider.failed_submission", "Lob submission failed.", {
-          error: error instanceof Error ? error.message : "Unknown Lob submission error",
-        });
+      if (shouldAutoSubmitToLob()) {
+        try {
+          await submitOrderToLob(order.id);
+        } catch (error) {
+          await updateOrder(order.id, {
+            status: "failed_provider_submission",
+            failed_at: new Date().toISOString(),
+          });
+          await addOrderEvent(order.id, "provider.failed_submission", "Lob submission failed.", {
+            error: error instanceof Error ? error.message : "Unknown Lob submission error",
+          });
+        }
       }
     }
   }

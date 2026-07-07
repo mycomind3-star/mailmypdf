@@ -21,6 +21,7 @@ type AdminOrder = DemoOrder & {
 const useLiveAdmin = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
+const useAutoSubmitToLob = process.env.AUTO_SUBMIT_TO_LOB === "true";
 
 export function AdminDashboard() {
   const [orders, setOrders] = useState<AdminOrder[]>(() => (useLiveAdmin ? [] : listDemoOrders()));
@@ -75,27 +76,23 @@ export function AdminDashboard() {
 
   const selected = filtered.find((order) => order.id === selectedId) ?? filtered[0] ?? orders[0];
 
-  function refresh() {
+  async function refresh() {
     if (useLiveAdmin) {
       setLoading(true);
-      fetch("/api/admin/orders")
-        .then(async (response) => {
-          const data = await response.json().catch(() => ({}));
-          if (!response.ok) {
-            throw new Error(String(data?.error ?? "Unable to load admin orders."));
-          }
-          return data as { orders: AdminOrder[] };
-        })
-        .then((data) => {
-          setOrders(data.orders ?? []);
-          setSelectedId((current) => current || (data.orders?.[0]?.id ?? ""));
-        })
-        .catch((caught) => {
-          setError(caught instanceof Error ? caught.message : "Unable to load admin orders.");
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+      try {
+        const response = await fetch("/api/admin/orders");
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(String(data?.error ?? "Unable to load admin orders."));
+        }
+        const nextOrders = (data as { orders: AdminOrder[] }).orders ?? [];
+        setOrders(nextOrders);
+        setSelectedId((current) => current || (nextOrders[0]?.id ?? ""));
+      } catch (caught) {
+        setError(caught instanceof Error ? caught.message : "Unable to load admin orders.");
+      } finally {
+        setLoading(false);
+      }
       return;
     }
 
@@ -113,7 +110,7 @@ export function AdminDashboard() {
       message: "Manual retry triggered from the admin dashboard.",
       createdAt: new Date().toISOString(),
     });
-    refresh();
+    void refresh();
   }
 
   function markRefunded() {
@@ -124,7 +121,7 @@ export function AdminDashboard() {
       message: "Order marked refunded by an admin.",
       createdAt: new Date().toISOString(),
     });
-    refresh();
+    void refresh();
   }
 
   function saveNote() {
@@ -136,7 +133,30 @@ export function AdminDashboard() {
       createdAt: new Date().toISOString(),
     });
     setNote("");
-    refresh();
+    void refresh();
+  }
+
+  async function submitToLob() {
+    if (!selected) return;
+
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await fetch(`/api/admin/orders/${selected.id}/submit-lob`, {
+        method: "POST",
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(String(data?.error ?? "Unable to submit to Lob."));
+      }
+
+      await refresh();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Unable to submit to Lob.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -151,7 +171,7 @@ export function AdminDashboard() {
           </p>
           {useLiveAdmin ? (
             <p className="mt-3 text-sm font-medium text-[color:var(--accent-strong)]">
-              Live admin mode is read-only in beta.
+              Live admin mode is read-only unless manual Lob submission is enabled.
             </p>
           ) : null}
         </div>
@@ -233,9 +253,20 @@ export function AdminDashboard() {
           <Card className="p-6">
             <h2 className="text-lg font-semibold text-[color:var(--foreground)]">Actions</h2>
             {useLiveAdmin ? (
-              <p className="mt-4 text-sm leading-6 text-[color:var(--muted)]">
-                Live admin is read-only until the staff auth flow is connected.
-              </p>
+              <div className="mt-4 space-y-3">
+                <p className="text-sm leading-6 text-[color:var(--muted)]">
+                  Live admin is read-only until the staff auth flow is connected.
+                </p>
+                {!useAutoSubmitToLob && selected ? (
+                  <Button
+                    onClick={submitToLob}
+                    variant="secondary"
+                    disabled={loading || selected.status === "provider_processing" || Boolean(selected.lobLetterId)}
+                  >
+                    Submit to Lob
+                  </Button>
+                ) : null}
+              </div>
             ) : (
               <>
                 <div className="mt-4 flex flex-wrap gap-3">

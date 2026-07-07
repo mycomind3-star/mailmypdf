@@ -14,6 +14,7 @@ MailMyPDF is a Next.js app for uploading a PDF, paying for mail fulfillment, and
 4. For Lob fulfillment, set:
    - `LOB_API_KEY`
    - `LOB_WEBHOOK_SECRET`
+   - `AUTO_SUBMIT_TO_LOB` (`true` to auto-submit paid orders, `false` for manual submission)
 5. Point your Lob webhook subscription at:
    - `https://<your-app>/api/public/lob-webhook`
    - `https://<your-app>/api/webhooks/lob` also works as an alias
