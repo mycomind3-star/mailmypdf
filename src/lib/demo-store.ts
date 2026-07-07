@@ -116,7 +116,7 @@ function seedOrders(): DemoOrder[] {
       events: [
         {
           eventType: "provider.submitted",
-          message: "The letter was submitted to the mail partner.",
+          message: "The proof file was created.",
           createdAt: now,
         },
         {
@@ -151,7 +151,7 @@ function seedOrders(): DemoOrder[] {
       events: [
         {
           eventType: "provider.failed",
-          message: "The mail partner rejected the submission.",
+          message: "The proof file needs review.",
           createdAt: now,
         },
       ],

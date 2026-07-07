@@ -2,7 +2,13 @@ import { FileCheck2, FileText, ShieldCheck } from "lucide-react";
 import { Button, Card } from "@/components/ui";
 import { proofHighlights, templatePreviewBlocks } from "@/lib/templates";
 
-const reviewRequiredTemplateIds = new Set(["formal-demand-letter", "notice-of-nonpayment", "contract-termination", "service-suspension", "housing-notice"]);
+const reviewRequiredTemplateIds = new Set([
+  "client-payment-reminder",
+  "overdue-invoice-notice",
+  "contract-termination",
+  "service-suspension",
+  "records-request",
+]);
 
 export default function TemplatesPage() {
   return (
@@ -10,11 +16,10 @@ export default function TemplatesPage() {
       <div className="max-w-3xl">
         <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Templates</p>
         <h1 className="serif-heading mt-4 text-5xl font-normal leading-[0.95] text-[color:var(--foreground)] md:text-7xl">
-          Templates for serious mail.
+          Templates for serious business letters.
         </h1>
         <p className="mt-6 max-w-2xl text-lg leading-8 text-[color:var(--muted)]">
-          Start from a formal template for legal-style notices, records requests, housing correspondence, and business letters.
-          Every template is informational and should be reviewed before sending.
+          Start from a client, vendor, or compliance template for freelancers and small businesses. Every template is informational and should be reviewed before sending.
         </p>
         <div className="mt-8 flex flex-wrap gap-4">
           <Button href="/send">Create a Proof File</Button>
@@ -46,8 +51,8 @@ export default function TemplatesPage() {
                 {template.disclaimer}
               </div>
               <div className="mt-5">
-                <Button href={`/send?template=${template.id}`} variant="secondary">
-                  Start with this template
+                <Button href={`/templates/${template.id}`} variant="secondary">
+                  View details
                 </Button>
               </div>
             </Card>
@@ -62,7 +67,7 @@ export default function TemplatesPage() {
             </div>
             <h2 className="text-2xl font-semibold text-[color:var(--foreground)]">Turn rough notes into clean formal letters.</h2>
             <p className="mt-3 text-sm leading-6 text-[color:var(--muted)]">
-              ProofPost is built for correspondence that needs to look official: notices, requests, reminders, and letters you want archived with a proof packet.
+              ProofPost is built for client work, vendor follow-ups, and internal compliance letters that need to look official and stay archived with a proof packet.
             </p>
           </Card>
 

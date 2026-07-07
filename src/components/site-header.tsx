@@ -26,12 +26,12 @@ export function SiteHeader() {
             Log in
           </Link>
           <Button href="/send" className="px-4 py-2.5">
-            Create a Proof File
+            Send a Letter
           </Button>
         </nav>
         <div className="md:hidden">
           <Button href="/send" className="px-4 py-2.5">
-            Create a Proof File
+            Send a Letter
           </Button>
         </div>
       </div>

@@ -167,7 +167,7 @@ export function AdminDashboard() {
             Admin dashboard
           </h1>
           <p className="mt-3 max-w-2xl text-base leading-7 text-[color:var(--muted)]">
-            Review orders, catch failed submissions, and resolve provider issues without exposing raw provider payloads to the customer.
+            Review orders, catch failed submissions, and resolve proof-file issues without exposing raw provider payloads to the customer.
           </p>
           {useLiveAdmin ? (
             <p className="mt-3 text-sm font-medium text-[color:var(--accent-strong)]">

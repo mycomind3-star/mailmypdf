@@ -23,6 +23,10 @@ type DraftOrder = {
   orderId: string;
   lookupToken: string;
   email: string;
+  clientName: string;
+  subject: string;
+  goal: string;
+  tone: "formal" | "calm" | "concise";
   fileName: string;
   fileSizeBytes: number;
   file: File | null;
@@ -48,6 +52,10 @@ const emptyDraft = (): DraftOrder => ({
   orderId: crypto.randomUUID(),
   lookupToken: crypto.randomUUID().replaceAll("-", ""),
   email: "",
+  clientName: "",
+  subject: "",
+  goal: "",
+  tone: "formal",
   fileName: "",
   fileSizeBytes: 0,
   file: null,
@@ -119,6 +127,33 @@ async function postFormData<T>(url: string, formData: FormData): Promise<T> {
   return data as T;
 }
 
+function buildDraftPreview(templateTitle: string, clientName: string, subject: string, goal: string, tone: DraftOrder["tone"]) {
+  const intro =
+    tone === "concise"
+      ? "I’m writing to confirm the request and next step."
+      : tone === "calm"
+        ? "I’m writing to confirm the request in a calm and professional way."
+        : "I’m writing to document the request and keep the record professional.";
+  const followUp =
+    tone === "concise"
+      ? "Please reply in writing with confirmation."
+      : tone === "calm"
+        ? "Please reply in writing so we can keep the record clear."
+        : "Please reply in writing by the date stated below so the record is complete.";
+
+  return [
+    `${clientName || "Client name"}`,
+    subject || templateTitle,
+    "",
+    intro,
+    goal || "Use this space to describe the issue, request, or next step.",
+    followUp,
+    "",
+    "Best,",
+    "Your name",
+  ].join("\n");
+}
+
 const useLiveStripeCheckout = Boolean(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY &&
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -138,6 +173,13 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
 
   const priceQuote = draft.pageCount ? pricingCopy(draft.pageCount) : null;
   const finalPriceCents = draft.pageCount ? calculateLetterPrice(draft.pageCount) : 0;
+  const draftPreview = buildDraftPreview(
+    selectedTemplate?.title ?? "Formal business letter",
+    draft.clientName,
+    draft.subject,
+    draft.goal,
+    draft.tone,
+  );
 
   function updateDraft(patch: Partial<DraftOrder>) {
     setDraft((current) => ({ ...current, ...patch }));
@@ -178,7 +220,7 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
       setDraft(nextDraft);
 
       if (!useLiveStripeCheckout) {
-        upsertDemoOrder({
+      upsertDemoOrder({
           id: draft.orderId,
           token: draft.lookupToken,
           email: draft.email,
@@ -353,14 +395,14 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
       paidAt: now,
       submittedToProviderAt: now,
       events: [
-        {
-          eventType: "provider.submitted",
-          message: "Payment received and the letter was submitted to the mail partner.",
-          createdAt: now,
-        },
-        {
-          eventType: "payment.received",
-          message: "Stripe Checkout completed successfully.",
+          {
+            eventType: "provider.submitted",
+            message: "Payment received and the proof file was created.",
+            createdAt: now,
+          },
+          {
+            eventType: "payment.received",
+            message: "Stripe Checkout completed successfully.",
           createdAt: now,
         },
       ],
@@ -370,7 +412,7 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
       patchDemoOrder(draft.orderId, { status: "provider_processing" });
       appendDemoEvent(draft.orderId, {
         eventType: "provider.processing",
-        message: "The mail partner is preparing the letter.",
+        message: "The proof file is being prepared.",
         createdAt: new Date().toISOString(),
       });
     }, 1500);
@@ -382,7 +424,7 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
       });
       appendDemoEvent(draft.orderId, {
         eventType: "mailed",
-        message: "The letter was marked as mailed.",
+        message: "The proof file is archived and ready.",
         createdAt: new Date().toISOString(),
       });
     }, 6000);
@@ -395,8 +437,8 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
   return (
     <div className="container-shell py-10 md:py-14">
       <SectionHeading
-        title="Template → Upload → Address → Review → Pay"
-        description="Start from a formal template or upload your own PDF, then lock the price before checkout."
+        title="Template → Draft → Address → Review → Pay"
+        description="Start from a business template, polish the draft, validate the address, and lock the price before checkout."
       />
 
       <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_0.84fr]">
@@ -404,8 +446,8 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
           <div className="border-b border-[color:var(--border)] px-6 py-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-[color:var(--foreground)]">Send a formal letter</p>
-                <p className="mt-1 text-sm text-[color:var(--muted)]">PDF only. Max 10MB. Max 10 pages. U.S. mail only.</p>
+                <p className="text-sm font-semibold text-[color:var(--foreground)]">Build a business letter</p>
+                <p className="mt-1 text-sm text-[color:var(--muted)]">PDF only. Max 10MB. Max 10 pages. U.S. proof-file workflow in phase 1.</p>
               </div>
               <div className="flex items-center gap-2 rounded-full border border-[color:var(--border)] bg-[color:var(--surface-muted)] p-1 text-xs font-semibold">
                 {["Upload", "Addresses", "Review", "Pay"].map((item, index) => (
@@ -446,6 +488,60 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
                     <p className="mt-2 text-sm leading-6 text-[color:var(--muted)]">{selectedTemplate?.summary}</p>
                     <p className="mt-3 text-sm leading-6 text-[color:var(--foreground)]">{selectedTemplate?.body}</p>
                     <p className="mt-3 text-xs leading-5 text-slate-500">{selectedTemplate?.disclaimer}</p>
+                  </div>
+
+                  <div className="mt-5 grid gap-4">
+                    <div>
+                      <Label>Client or company</Label>
+                      <Input
+                        value={draft.clientName}
+                        onChange={(event) => updateDraft({ clientName: event.target.value })}
+                        placeholder="Acme Studio LLC"
+                      />
+                    </div>
+                    <div>
+                      <Label>Letter subject</Label>
+                      <Input
+                        value={draft.subject}
+                        onChange={(event) => updateDraft({ subject: event.target.value })}
+                        placeholder="Invoice 1024 follow-up"
+                      />
+                    </div>
+                    <div>
+                      <Label>What this letter should do</Label>
+                      <textarea
+                        value={draft.goal}
+                        onChange={(event) => updateDraft({ goal: event.target.value })}
+                        placeholder="Confirm the overdue balance and ask for payment by Friday."
+                        className="min-h-28 w-full rounded-md border border-[color:var(--border)] bg-white px-3 py-3 text-sm text-[color:var(--foreground)] shadow-sm transition focus:border-[color:var(--accent)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent-soft)]"
+                      />
+                    </div>
+                    <div>
+                      <Label>Polish</Label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { value: "formal", label: "Formal" },
+                          { value: "calm", label: "Calm tone" },
+                          { value: "concise", label: "Concise" },
+                        ].map((item) => (
+                          <button
+                            key={item.value}
+                            type="button"
+                            onClick={() => updateDraft({ tone: item.value as DraftOrder["tone"] })}
+                            className={`rounded-md border px-3 py-2 text-sm font-medium transition ${
+                              draft.tone === item.value
+                                ? "border-[color:var(--accent)] bg-[color:var(--accent-soft)] text-[color:var(--foreground)]"
+                                : "border-[color:var(--border)] bg-white text-[color:var(--muted)] hover:border-[color:var(--border-strong)]"
+                            }`}
+                          >
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="mt-2 text-xs text-slate-500">
+                        Phase 1 uses local polish controls. Phase 3 adds a real AI writing assistant.
+                      </p>
+                    </div>
                   </div>
 
                   <Label>Email</Label>
@@ -490,11 +586,14 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
                 </div>
 
                 <div className="space-y-4 rounded-2xl border border-[color:var(--border)] bg-white p-5">
-                  <p className="text-sm font-semibold text-[color:var(--foreground)]">Uploaded file</p>
+                  <p className="text-sm font-semibold text-[color:var(--foreground)]">Draft preview</p>
                   <div className="rounded-xl border border-[color:var(--border)] bg-[color:var(--surface-muted)] p-4">
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Starting point</p>
                     <p className="mt-2 text-sm font-semibold text-[color:var(--foreground)]">{selectedTemplate?.title}</p>
                     <p className="mt-1 text-sm text-[color:var(--muted)]">{selectedTemplate?.summary}</p>
+                    <div className="mt-4 rounded-2xl border border-[color:var(--border)] bg-white p-4 text-sm leading-6 text-[color:var(--foreground)]">
+                      <pre className="whitespace-pre-wrap font-sans">{draftPreview}</pre>
+                    </div>
                   </div>
                   {draft.fileName ? (
                     <div className="rounded-xl border border-[color:var(--border)] bg-[color:var(--surface-muted)] p-4">
@@ -503,7 +602,7 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
                       <p className="text-sm text-[color:var(--muted)]">{formatMoney(finalPriceCents)}</p>
                     </div>
                   ) : (
-                    <p className="text-sm text-[color:var(--muted)]">No file uploaded yet.</p>
+                    <p className="text-sm text-[color:var(--muted)]">No PDF uploaded yet.</p>
                   )}
                   <div className="space-y-2 text-sm text-[color:var(--muted)]">
                     <p>• File type: PDF</p>
@@ -594,7 +693,7 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
                       </p>
                     </div>
                     <p className="rounded-2xl bg-[color:var(--surface-muted)] p-4 text-sm text-[color:var(--foreground)]">
-                      Please review carefully. We print and mail the document exactly as submitted.
+                      Please review carefully. We prepare the letter and proof record exactly as submitted.
                     </p>
                   </div>
                 </Card>
@@ -605,7 +704,7 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
                     <div className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface-muted)] p-4">
                       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Price</p>
                       <p className="serif-heading mt-2 text-5xl text-[color:var(--accent)]">{formatMoney(finalPriceCents)}</p>
-                      <p className="mt-2 text-sm text-[color:var(--muted)]">{priceQuote?.label ?? "Black-and-white mailing"}</p>
+                      <p className="mt-2 text-sm text-[color:var(--muted)]">{priceQuote?.label ?? "Black-and-white proof file"}</p>
                     </div>
                     <label className="flex items-start gap-3 rounded-2xl border border-[color:var(--border)] p-4 text-sm leading-6 text-[color:var(--foreground)]">
                       <input
@@ -615,7 +714,7 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
                         onChange={(event) => updateDraft({ reviewAccepted: event.target.checked })}
                       />
                       <span>
-                        I reviewed the document and addresses. I understand ProofPost prints and mails the document exactly as submitted.
+                        I reviewed the document and addresses. I understand ProofPost prepares the proof file exactly as submitted.
                       </span>
                     </label>
                     <label className="flex items-start gap-3 rounded-2xl border border-[color:var(--border)] p-4 text-sm leading-6 text-[color:var(--foreground)]">
@@ -633,7 +732,7 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
                         Back
                       </Button>
                       <Button className="flex-1" variant="dark" onClick={handlePay} disabled={!draft.reviewAccepted || !draft.termsAccepted || paying}>
-                        {paying ? "Processing..." : `Pay & Mail — ${formatMoney(finalPriceCents)}`}
+                        {paying ? "Processing..." : `Pay & Archive — ${formatMoney(finalPriceCents)}`}
                       </Button>
                     </div>
                   </div>
@@ -669,9 +768,9 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
           <Card className="p-6">
             <p className="text-sm font-semibold text-[color:var(--foreground)]">What happens next</p>
             <ul className="mt-4 space-y-3 text-sm leading-6 text-[color:var(--muted)]">
-              <li>1. Choose a formal template or upload your own PDF.</li>
+              <li>1. Choose a formal template and shape the draft.</li>
               <li>2. Stripe Checkout receives the payment.</li>
-              <li>3. The letter is submitted to the mail partner.</li>
+              <li>3. The proof file and order record are created.</li>
               <li>4. You get a confirmation page and secure order link.</li>
               <li>5. Download a proof packet with the PDF, receipt, and timeline.</li>
             </ul>

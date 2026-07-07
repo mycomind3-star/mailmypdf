@@ -46,7 +46,7 @@ export async function GET(
   })) as ProofPacketEvent[];
 
   const proofZip = await buildProofPacketZip(order, new Uint8Array(await response.arrayBuffer()), events);
-  const fileName = `mailmypdf-proof-${orderId}.zip`;
+  const fileName = `proofpost-proof-${orderId}.zip`;
 
   return new NextResponse(Buffer.from(proofZip), {
     headers: {

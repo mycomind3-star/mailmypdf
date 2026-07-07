@@ -100,14 +100,14 @@ export function OrderPage({ orderId, token }: OrderPageProps) {
 
   if (!activeOrder || (!hasLiveStripe && (!token || token !== demoOrder?.token)) || accessError) {
     return (
-      <div className="container-shell py-16">
+          <div className="container-shell py-16">
         <div className="max-w-xl">
-          <h1 className="serif-heading text-4xl font-normal text-[color:var(--foreground)]">Order lookup</h1>
+          <h1 className="serif-heading text-4xl font-normal text-[color:var(--foreground)]">Letter lookup</h1>
           <p className="mt-4 text-base leading-7 text-[color:var(--muted)]">
             {accessError || "We could not open this order with the provided token."}
           </p>
           <div className="mt-6 flex gap-3">
-            <Button href="/send">Upload PDF</Button>
+            <Button href="/send">Create a Proof File</Button>
             <Button href="/" variant="secondary">
               Return home
             </Button>
@@ -128,7 +128,7 @@ export function OrderPage({ orderId, token }: OrderPageProps) {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="serif-heading text-4xl font-normal text-[color:var(--foreground)] md:text-5xl">
-            Your mail order
+            Your letter record
           </h1>
           <p className="mt-3 text-base leading-7 text-[color:var(--muted)]">
             Live order record for {activeOrder.id}. Only this token can open the order.
@@ -140,7 +140,7 @@ export function OrderPage({ orderId, token }: OrderPageProps) {
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.02fr_0.98fr]">
         <div className="space-y-6">
           <Card className="p-6">
-            <h2 className="text-lg font-semibold text-[color:var(--foreground)]">Order summary</h2>
+            <h2 className="text-lg font-semibold text-[color:var(--foreground)]">Letter summary</h2>
             <dl className="mt-5 grid gap-4 sm:grid-cols-2">
               <SummaryItem label="File name" value={activeOrder.fileName ?? "—"} />
               <SummaryItem label="Page count" value={`${activeOrder.pageCount ?? 0} pages`} />
@@ -191,7 +191,7 @@ export function OrderPage({ orderId, token }: OrderPageProps) {
                 </Button>
               ) : null}
               <Button href="/send" className="w-full" variant="secondary">
-                Send another letter
+                Create another proof file
               </Button>
               <div className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface-muted)] p-4 text-sm text-[color:var(--muted)]">
                 <p className="font-semibold text-[color:var(--foreground)]">Secure link</p>

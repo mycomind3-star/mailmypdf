@@ -76,7 +76,7 @@ export function SuccessPage({
           </div>
           <h1 className="serif-heading mt-6 text-4xl font-normal text-[color:var(--foreground)]">Payment received.</h1>
           <p className="mt-4 text-base leading-7 text-[color:var(--muted)]">
-            Your letter is moving into provider processing. You’ll be redirected to the secure order page shortly.
+            Your proof file is moving into archive processing. You’ll be redirected to the secure order page shortly.
           </p>
           <div className="mt-6 flex justify-center">
             <StatusBadge status={activeOrder?.status ?? "submitted_to_provider"} />
@@ -86,7 +86,7 @@ export function SuccessPage({
             <p className="mt-1 break-all">{sessionId ?? "No session id provided."}</p>
             <p className="mt-3 font-semibold text-[color:var(--foreground)]">Next step</p>
             <p className="mt-1">
-              We’ll show the order status page next. If a provider issue appears, the order will move to manual review.
+              We’ll show the order status page next. If anything needs attention, the order will move to manual review.
             </p>
           </div>
           {activeOrder ? (
@@ -105,7 +105,7 @@ export function SuccessPage({
                 Download proof packet
               </Button>
             ) : null}
-            <Button href="/send">Upload PDF</Button>
+            <Button href="/send">Create a Proof File</Button>
           </div>
         </Card>
       </div>

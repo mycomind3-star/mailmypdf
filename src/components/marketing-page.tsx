@@ -3,7 +3,7 @@ import { Button, Card, SectionHeading } from "./ui";
 import { FaqList } from "./faq-list";
 import { PriceCard } from "./price-card";
 import { proofHighlights, templates } from "@/lib/templates";
-import { howItWorks, pricingBands } from "@/lib/site-content";
+import { howItWorks, pricingBands, roadmapPhases } from "@/lib/site-content";
 
 function StepIcon({ index }: { index: number }) {
   return (
@@ -33,15 +33,15 @@ function ProofPanel() {
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 rounded-full border border-[color:var(--border)] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
                 <BadgeCheck size={14} />
-                Formal mail
+                Business letter
               </div>
               <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600">Step 1 of 4</span>
             </div>
             <div className="mt-5 rounded-2xl border border-[color:var(--border)] bg-white p-4 shadow-[0_12px_28px_rgba(15,39,66,0.04)]">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Selected template</p>
-              <p className="mt-2 text-base font-semibold text-[color:var(--foreground)]">Formal demand letter</p>
+              <p className="mt-2 text-base font-semibold text-[color:var(--foreground)]">Client payment reminder</p>
               <p className="mt-1 text-sm text-[color:var(--muted)]">
-                Serious, concise, and reviewable before mailing.
+                Serious, concise, and reviewable before archiving.
               </p>
             </div>
             <div className="mt-5 rounded-2xl border border-[color:var(--border)] bg-white p-4">
@@ -103,23 +103,23 @@ export function MarketingPage() {
           <div className="hero-orb animate-float-delayed right-[-2rem] top-16 h-32 w-32 bg-[rgba(13,120,148,0.06)]" />
           <div className="mx-auto max-w-4xl text-center">
             <div className="reveal-up inline-flex items-center gap-2 rounded-full border border-[color:var(--border)] bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-600 shadow-[0_10px_24px_rgba(15,39,66,0.05)]">
-              Templates for serious mail
+              ProofPost for serious business letters
             </div>
             <h1 className="serif-heading text-5xl font-normal leading-[0.95] text-[color:var(--foreground)] md:text-7xl">
-              Send formal letters without a printer, post office, or guesswork.
+              Create, mail, and archive professional client letters without a printer or post office.
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-[color:var(--muted)]">
-              ProofPost helps you start from a template, mail a real letter, and keep a clean proof packet for records, disputes, notices, and other important correspondence.
+              ProofPost helps freelancers and small businesses start from a template, polish a draft, validate the address, and keep a clean proof file for client work.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
-              <Button href="/send">Create a Proof File</Button>
-              <Button href="/templates" variant="secondary">
-                View Templates
+              <Button href="/send">Send a Letter</Button>
+              <Button href="#proof-file" variant="secondary">
+                See Proof File Example
               </Button>
             </div>
             <div className="mt-6 flex flex-wrap justify-center gap-3 text-sm text-[color:var(--muted)]">
               <span className="rounded-full border border-[color:var(--border)] bg-white px-4 py-2">No account required</span>
-              <span className="rounded-full border border-[color:var(--border)] bg-white px-4 py-2">Legal-friendly templates</span>
+              <span className="rounded-full border border-[color:var(--border)] bg-white px-4 py-2">Business-letter templates</span>
               <span className="rounded-full border border-[color:var(--border)] bg-white px-4 py-2">Proof packet included</span>
             </div>
           </div>
@@ -128,7 +128,7 @@ export function MarketingPage() {
             <div>
               <SectionHeading
                 title="How it works"
-                description="Pick a template, upload the document, confirm the addresses, and pay online."
+                description="Pick a template, polish the draft, confirm the addresses, and pay online."
               />
               <div className="mt-8 space-y-5">
                 {howItWorks.map((step, index) => (
@@ -187,6 +187,24 @@ export function MarketingPage() {
         </div>
       </section>
 
+      <section className="section-space border-b border-[color:var(--border)] bg-[color:var(--surface-muted)]">
+        <div className="container-shell">
+          <SectionHeading
+            title="Build order"
+            description="Phase 1 is enough to ship. Each later phase adds one layer, instead of bundling every idea into the first release."
+          />
+          <div className="mt-8 grid gap-4 lg:grid-cols-5">
+            {roadmapPhases.map((phase) => (
+              <Card key={phase.phase} className="p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{phase.phase}</p>
+                <h3 className="mt-3 text-lg font-semibold text-[color:var(--foreground)]">{phase.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-[color:var(--muted)]">{phase.body}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section id="pricing" className="section-space">
         <div className="container-shell">
           <SectionHeading
@@ -205,11 +223,11 @@ export function MarketingPage() {
         </div>
       </section>
 
-      <section className="section-space border-y border-[color:var(--border)] bg-white">
+      <section id="proof-file" className="section-space border-y border-[color:var(--border)] bg-white">
         <div className="container-shell">
           <SectionHeading
             title="What’s included in the proof packet"
-            description="Everything you need for a clean record of what was mailed, when, and to whom."
+            description="Everything you need for a clean record of what was created, when, and for whom."
           />
           <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {proofHighlights.map((item) => (
@@ -230,12 +248,12 @@ export function MarketingPage() {
         <div className="container-shell">
           <SectionHeading
             title="Common reasons people use it"
-            description="Formal notices, records requests, housing correspondence, and business letters that need a clean trail."
+            description="Client letters, invoice reminders, vendor follow-ups, and compliance letters that need a clean trail."
           />
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {[
-              "Send notices without printing at home",
-              "Mail records requests from a browser",
+              "Send invoice reminders without printing at home",
+              "Mail client and vendor letters from a browser",
               "Ship formal business letters with proof",
             ].map((item) => (
               <Card key={item} className="p-6">

@@ -7,16 +7,16 @@ export function SiteFooter() {
         <div className="max-w-2xl">
           <p className="serif-heading text-2xl font-normal">ProofPost</p>
           <p className="mt-3 max-w-xl text-sm leading-7 text-[color:var(--muted)]">
-            ProofPost provides templates, mailing, and order-record tools for serious correspondence. We do not provide legal, tax, financial, or professional advice. Users are responsible for reviewing their documents, addresses, deadlines, and mailing requirements before submitting an order.
+            ProofPost provides templates, draft tools, and order-record tools for serious correspondence. We do not provide legal, tax, financial, or professional advice. Users are responsible for reviewing their documents, addresses, deadlines, and submission requirements before submitting an order.
           </p>
         </div>
         <div className="flex flex-col gap-3 md:items-end">
           <p className="text-sm font-medium text-[color:var(--foreground)]">
-            Support: support@mailmypdf.com
+            Support: support@proofpost.com
           </p>
           <div className="flex flex-wrap gap-3">
             <Button href="/send" variant="secondary">
-              Upload PDF
+              Create a Proof File
             </Button>
             <Button href="/#faq" variant="ghost">
               Read FAQ

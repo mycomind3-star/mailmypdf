@@ -24,10 +24,10 @@ export function PriceCard({
           </p>
         </div>
         <ul className="space-y-2 text-sm text-[color:var(--muted)]">
-          <li>Print, envelope, and postage included</li>
-          <li>U.S. First-Class Mail</li>
-          <li>No subscription required</li>
           <li>Proof packet included</li>
+          <li>U.S. domestic letters only</li>
+          <li>No subscription required</li>
+          <li>Order record and timeline included</li>
         </ul>
       </div>
     </Card>
