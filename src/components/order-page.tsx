@@ -120,6 +120,8 @@ export function OrderPage({ orderId, token }: OrderPageProps) {
   const downloadHref = hasLiveStripe
     ? liveOrder?.downloadUrl ?? "#"
     : demoOrder?.fileDataUrl ?? "data:application/pdf;base64,JVBERi0xLjQKJc...";
+  const proofPacketHref =
+    hasLiveStripe && token ? `/api/orders/${orderId}/proof-packet?token=${encodeURIComponent(token)}` : null;
 
   return (
     <div className="container-shell py-10 md:py-14">
@@ -183,12 +185,20 @@ export function OrderPage({ orderId, token }: OrderPageProps) {
               <Button href={downloadHref} className="w-full" variant="dark">
                 Download PDF
               </Button>
+              {proofPacketHref ? (
+                <Button href={proofPacketHref} className="w-full" variant="secondary">
+                  Download proof packet
+                </Button>
+              ) : null}
               <Button href="/send" className="w-full" variant="secondary">
                 Send another letter
               </Button>
               <div className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface-muted)] p-4 text-sm text-[color:var(--muted)]">
                 <p className="font-semibold text-[color:var(--foreground)]">Secure link</p>
                 <p className="mt-2 break-all text-xs">{`/orders/${activeOrder.id}?token=${token ?? ""}`}</p>
+                <p className="mt-3 text-xs leading-5">
+                  Proof packet includes the original PDF, payment receipt, and order timeline.
+                </p>
               </div>
             </div>
           </Card>

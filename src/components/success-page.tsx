@@ -54,6 +54,8 @@ export function SuccessPage({
 
   const demoOrder = !hasLiveStripe ? (orderId ? getDemoOrder(orderId) ?? null : null) : null;
   const activeOrder = order ?? demoOrder;
+  const proofPacketHref =
+    hasLiveStripe && orderId && token ? `/api/orders/${orderId}/proof-packet?token=${encodeURIComponent(token)}` : null;
 
   useEffect(() => {
     if (!orderId || !token) return;
@@ -98,6 +100,11 @@ export function SuccessPage({
             <Button href={orderId && token ? `/orders/${orderId}?token=${token}` : "/send"} variant="secondary">
               Open order now
             </Button>
+            {proofPacketHref ? (
+              <Button href={proofPacketHref} variant="secondary">
+                Download proof packet
+              </Button>
+            ) : null}
             <Button href="/send">Upload PDF</Button>
           </div>
         </Card>

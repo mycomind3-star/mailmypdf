@@ -638,8 +638,9 @@ export function SendFlow() {
             <ul className="mt-4 space-y-3 text-sm leading-6 text-[color:var(--muted)]">
               <li>1. Stripe Checkout receives the payment.</li>
               <li>2. The letter is submitted to the mail partner.</li>
-              <li>3. You get a confirmation page and order link.</li>
-              <li>4. The order timeline updates as the provider status changes.</li>
+              <li>3. You get a confirmation page and secure order link.</li>
+              <li>4. Download a proof packet with the PDF, receipt, and timeline.</li>
+              <li>5. The order timeline updates as the provider status changes.</li>
             </ul>
           </Card>
 
