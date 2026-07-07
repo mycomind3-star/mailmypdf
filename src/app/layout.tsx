@@ -18,7 +18,7 @@ const instrumentSerif = Instrument_Serif({
 
 export const metadata: Metadata = {
   title: "MailMyPDF",
-  description: "Mail a PDF without a printer. Upload, address, pay online, and mail it.",
+  description: "Upload a PDF, enter the addresses, pay online, and mail it as a real physical letter.",
 };
 
 export default function RootLayout({

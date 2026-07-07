@@ -131,7 +131,7 @@ export function OrderPage({ orderId, token }: OrderPageProps) {
             Your mail order
           </h1>
           <p className="mt-3 text-base leading-7 text-[color:var(--muted)]">
-            Secure link view for order {activeOrder.id}. Only this token can open the order.
+            Live order record for {activeOrder.id}. Only this token can open the order.
           </p>
         </div>
         <StatusBadge status={activeOrder.status} />

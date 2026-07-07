@@ -24,7 +24,7 @@ export function PriceCard({
           </p>
         </div>
         <ul className="space-y-2 text-sm text-[color:var(--muted)]">
-          <li>Print and stamp included</li>
+          <li>Print, envelope, and postage included</li>
           <li>U.S. First-Class Mail</li>
           <li>No subscription required</li>
           <li>Pay only when you send</li>
@@ -33,4 +33,3 @@ export function PriceCard({
     </Card>
   );
 }
-

@@ -7,19 +7,19 @@ export const navLinks = [
 export const howItWorks = [
   {
     title: "Upload your PDF",
-    body: "Drop in a single PDF and we check file type, size, and page count before you continue.",
+    body: "Drop in a single PDF and we verify file type, size, and page count before you continue.",
   },
   {
     title: "Enter addresses",
-    body: "Add the sender and recipient details. U.S. domestic mailing only in v1.",
+    body: "Add the sender and recipient details. U.S. domestic mailing only in this version.",
   },
   {
     title: "Review carefully",
-    body: "Check the file name, page count, address details, and final price before payment.",
+    body: "Review the file name, page count, addresses, and final price before payment.",
   },
   {
     title: "Pay & mail",
-    body: "Stripe Checkout handles payment, then the letter is submitted to the mail partner.",
+    body: "Stripe Checkout handles payment, then the letter is submitted to the mail partner and tracked.",
   },
 ] as const;
 
@@ -37,14 +37,14 @@ export const pricingBands = [
   {
     pages: "6-10 pages",
     price: "$9.99",
-    detail: "For longer documents that still stay within v1 limits.",
+    detail: "For longer documents that still stay within the service limits.",
   },
 ] as const;
 
 export const faqItems = [
   {
     question: "What file types do you accept?",
-    answer: "PDF only in the MVP.",
+    answer: "PDF only for now.",
   },
   {
     question: "Do I need an account?",
@@ -52,11 +52,11 @@ export const faqItems = [
   },
   {
     question: "Can I send international mail?",
-    answer: "No. U.S. domestic mail only for v1.",
+    answer: "No. U.S. domestic mail only.",
   },
   {
     question: "Can I cancel an order?",
-    answer: "Only before the provider cutoff or through support review.",
+    answer: "Only before provider processing starts, or through support review after that.",
   },
   {
     question: "Do you read my document?",
@@ -158,4 +158,3 @@ export const seoPages = [
       "Turn a PDF into a mailed business letter without handling printing or postage.",
   },
 ] as const;
-

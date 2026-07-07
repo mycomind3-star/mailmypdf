@@ -41,6 +41,11 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-dm-sans), sans-serif;
+  background-image:
+    radial-gradient(circle at top left, rgba(13, 120, 148, 0.08), transparent 28%),
+    radial-gradient(circle at 85% 10%, rgba(13, 120, 148, 0.05), transparent 20%),
+    linear-gradient(to bottom, #fdfcf9 0%, #ffffff 22%, #ffffff 100%);
+  background-attachment: fixed;
 }
 
 ::selection {
@@ -63,9 +68,50 @@ body {
 
 .soft-grid {
   background-image:
-    radial-gradient(circle at 20% 20%, rgba(13, 120, 148, 0.03), transparent 28%),
-    radial-gradient(circle at 85% 12%, rgba(13, 120, 148, 0.05), transparent 18%),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.4));
+    radial-gradient(circle at 20% 20%, rgba(13, 120, 148, 0.04), transparent 28%),
+    radial-gradient(circle at 85% 12%, rgba(13, 120, 148, 0.08), transparent 18%),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.42));
+}
+
+.hero-orb {
+  position: absolute;
+  inset: auto;
+  border-radius: 9999px;
+  filter: blur(12px);
+  pointer-events: none;
+}
+
+.animate-float-slow {
+  animation: float-slow 12s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float-slow 15s ease-in-out infinite;
+  animation-delay: -4s;
+}
+
+@keyframes float-slow {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -12px, 0);
+  }
+}
+
+.reveal-up {
+  animation: reveal-up 700ms ease-out both;
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 .glass-panel {

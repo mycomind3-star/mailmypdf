@@ -13,12 +13,12 @@ function StepIcon({ index }: { index: number }) {
 
 function PreviewPanel() {
   return (
-    <Card className="overflow-hidden">
+    <Card className="reveal-up overflow-hidden">
       <div className="border-b border-[color:var(--border)] px-6 py-5">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-[color:var(--foreground)]">Upload your PDF</p>
-            <p className="mt-1 text-sm text-[color:var(--muted)]">Drag and drop a PDF up to 10MB.</p>
+            <p className="mt-1 text-sm text-[color:var(--muted)]">Drag and drop a PDF up to 10MB. Pricing is locked before checkout.</p>
           </div>
           <span className="rounded-full bg-[color:var(--surface-muted)] px-3 py-1 text-xs font-semibold text-slate-600">
             Step 1 of 4
@@ -64,7 +64,7 @@ function PreviewPanel() {
             <Button className="mt-4 w-full" variant="dark">
               Pay & Mail — $6.99
             </Button>
-            <p className="mt-2 text-center text-xs text-slate-500">Secure payment</p>
+            <p className="mt-2 text-center text-xs text-slate-500">Secure payment, secure order link, proof packet included</p>
           </div>
         </div>
       </div>
@@ -76,8 +76,13 @@ export function MarketingPage() {
   return (
     <>
       <section id="how-it-works" className="soft-grid border-b border-[color:var(--border)]">
-        <div className="container-shell py-16 md:py-20">
+        <div className="container-shell relative overflow-hidden py-16 md:py-20">
+          <div className="hero-orb animate-float-slow left-[-4rem] top-[-3rem] h-40 w-40 bg-[rgba(13,120,148,0.08)]" />
+          <div className="hero-orb animate-float-delayed right-[-2rem] top-16 h-32 w-32 bg-[rgba(13,120,148,0.06)]" />
           <div className="mx-auto max-w-4xl text-center">
+            <div className="reveal-up inline-flex items-center gap-2 rounded-full border border-[color:var(--border)] bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-600 shadow-[0_10px_24px_rgba(15,39,66,0.05)]">
+              U.S. physical mail from your browser
+            </div>
             <h1 className="serif-heading text-5xl font-normal leading-[0.95] text-[color:var(--foreground)] md:text-7xl">
               Mail a PDF without a printer.
             </h1>
@@ -90,9 +95,11 @@ export function MarketingPage() {
                 See how it works
               </Button>
             </div>
-            <p className="mt-5 text-sm text-[color:var(--muted)]">
-              Printed and mailed through professional mail partners.
-            </p>
+            <div className="mt-6 flex flex-wrap justify-center gap-3 text-sm text-[color:var(--muted)]">
+              <span className="rounded-full border border-[color:var(--border)] bg-white px-4 py-2">No account required</span>
+              <span className="rounded-full border border-[color:var(--border)] bg-white px-4 py-2">Secure order link</span>
+              <span className="rounded-full border border-[color:var(--border)] bg-white px-4 py-2">Proof packet included</span>
+            </div>
           </div>
 
           <div className="mt-14 grid gap-10 lg:grid-cols-[0.84fr_1.16fr] lg:items-start">
@@ -143,7 +150,7 @@ export function MarketingPage() {
         <div className="container-shell">
           <SectionHeading
             title="Common reasons people use it"
-            description="MailMyPDF stays generic on purpose: simple document mailing, not a business suite or legal product."
+            description="MailMyPDF stays focused on one job: turning a PDF into a mailed letter with minimal friction."
           />
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {[
