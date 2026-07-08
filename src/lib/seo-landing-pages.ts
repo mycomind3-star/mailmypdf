@@ -305,23 +305,5 @@ export const seoPages: SeoLandingPage[] = [
     "title": "Send Signed Letter Online | ProofPost",
     "heading": "Send a signed letter online",
     "description": "Send a signed letter by mail and retain the proof packet, receipt, and timeline."
-  },
-  {
-    "slug": "mail-a-pdf-with-proof-of-mailing",
-    "title": "Mail a PDF With Proof of Mailing | ProofPost",
-    "heading": "Mail a PDF with proof of mailing",
-    "description": "Mail a PDF and keep the proof packet, receipt, and order timeline together."
-  },
-  {
-    "slug": "formal-business-correspondence-online",
-    "title": "Formal Business Correspondence Online | ProofPost",
-    "heading": "Formal business correspondence online",
-    "description": "Build a professional letter record from browser to archive without printing at home."
-  },
-  {
-    "slug": "send-business-notice-by-mail-online",
-    "title": "Send Business Notice by Mail Online | ProofPost",
-    "heading": "Send business notice by mail online",
-    "description": "Mail a business notice and save the letter record for internal or client files."
   }
 ];
