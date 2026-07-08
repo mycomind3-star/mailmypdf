@@ -3,6 +3,7 @@ import { DM_Sans, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { getAppUrl } from "@/lib/env";
 import type { ReactNode } from "react";
 
 const dmSans = DM_Sans({
@@ -19,6 +20,7 @@ const instrumentSerif = Instrument_Serif({
 export const metadata: Metadata = {
   title: "ProofPost",
   description: "Templates, proof packets, and serious U.S. mail for formal letters and records.",
+  metadataBase: new URL(getAppUrl()),
 };
 
 export default function RootLayout({
