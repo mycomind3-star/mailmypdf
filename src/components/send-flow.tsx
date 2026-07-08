@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { appendDemoEvent, patchDemoOrder, upsertDemoOrder } from "@/lib/demo-store";
+import { getCustomerSettings } from "@/lib/customer-settings";
 import { calculateLetterPrice, pricingCopy } from "@/lib/pricing";
 import { detectPdfPageCount } from "@/lib/pdf";
 import { getProofLevelLabel, proofLevelOptions, type ProofLevel } from "@/lib/proof-levels";
@@ -166,12 +167,23 @@ const useLiveStripeCheckout = Boolean(
 export function SendFlow({ templates: availableTemplates = templates }: { templates?: Template[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [draft, setDraft] = useState<DraftOrder>(() => emptyDraft());
+  const settings = getCustomerSettings();
+  const [draft, setDraft] = useState<DraftOrder>(() => ({
+    ...emptyDraft(),
+    email: settings.email,
+    clientName: settings.businessName || settings.contactName,
+    proofLevel: settings.defaultProofLevel,
+    sender: {
+      ...emptyAddress(),
+      ...settings.sender,
+      name: settings.sender.name || settings.businessName || settings.contactName,
+    },
+  }));
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [error, setError] = useState("");
   const [uploading, setUploading] = useState(false);
   const [paying, setPaying] = useState(false);
-  const [templateId, setTemplateId] = useState(searchParams.get("template") ?? availableTemplates[0]?.id ?? "");
+  const [templateId, setTemplateId] = useState(() => searchParams.get("template") ?? settings.defaultTemplateId ?? availableTemplates[0]?.id ?? "");
   const selectedTemplate = availableTemplates.find((item) => item.id === templateId) ?? availableTemplates[0];
 
   const priceQuote = draft.pageCount ? pricingCopy(draft.pageCount) : null;

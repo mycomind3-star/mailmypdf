@@ -4,6 +4,7 @@ export const navLinks = [
   { href: "/templates", label: "Templates" },
   { href: "/send", label: "Send" },
   { href: "/pricing", label: "Pricing" },
+  { href: "/settings", label: "Settings" },
   { href: "/#faq", label: "FAQ" },
 ] as const;
 

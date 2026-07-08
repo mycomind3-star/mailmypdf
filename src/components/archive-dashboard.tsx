@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Button, Card, Input } from "./ui";
 import { OrderTimeline } from "./order-timeline";
@@ -152,17 +153,24 @@ export function ArchiveDashboard() {
           <div className="sticky top-24 space-y-4 rounded-3xl border border-[color:var(--border)] bg-white p-5 shadow-[0_20px_50px_rgba(15,39,66,0.04)]">
             <p className="serif-heading text-2xl font-normal text-[color:var(--foreground)]">ProofPost</p>
             <nav className="space-y-2 text-sm">
-              {["Dashboard", "Send Letter", "Templates", "Archive", "Settings"].map((item) => (
-                <div
-                  key={item}
-                  className={`rounded-2xl px-4 py-3 font-medium ${
-                    item === "Archive"
+              {[
+                { label: "Dashboard", href: "/" },
+                { label: "Send Letter", href: "/send" },
+                { label: "Templates", href: "/templates" },
+                { label: "Archive", href: "/archive" },
+                { label: "Settings", href: "/settings" },
+              ].map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className={`block rounded-2xl px-4 py-3 font-medium transition ${
+                    item.label === "Archive"
                       ? "bg-[color:var(--accent-soft)] text-[color:var(--foreground)]"
-                      : "text-[color:var(--muted)]"
+                      : "text-[color:var(--muted)] hover:bg-[color:var(--surface-muted)] hover:text-[color:var(--foreground)]"
                   }`}
                 >
-                  {item}
-                </div>
+                  {item.label}
+                </Link>
               ))}
             </nav>
             <div className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface-muted)] p-4 text-sm leading-6 text-[color:var(--muted)]">
