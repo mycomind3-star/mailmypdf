@@ -233,6 +233,7 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
           pageCount,
           fileDataUrl: dataUrl,
           proofLevel: draft.proofLevel,
+          templateTitle: selectedTemplate?.title ?? "Formal business letter",
           senderName: draft.sender.name,
           senderAddressLine1: draft.sender.line1,
           senderCity: draft.sender.city,
@@ -276,6 +277,7 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
         status: "priced",
         email: draft.email,
         proofLevel: draft.proofLevel,
+        templateTitle: selectedTemplate?.title ?? "Formal business letter",
         senderName: draft.sender.name,
         senderAddressLine1: draft.sender.line1,
         senderCity: draft.sender.city,
@@ -317,6 +319,7 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
           const created = await postJson<{ orderId: string; lookupToken: string }>("/api/orders/create", {
             email: draft.email.trim(),
             proofLevel: draft.proofLevel,
+            templateTitle: selectedTemplate?.title ?? null,
           });
 
           const uploadFormData = new FormData();
@@ -394,6 +397,7 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
       recipientState: draft.recipient.state,
       recipientPostalCode: draft.recipient.postalCode,
       proofLevel: draft.proofLevel,
+      templateTitle: selectedTemplate?.title ?? "Formal business letter",
       priceCents: finalPriceCents,
       currency: "usd",
       stripeCheckoutSessionId: checkoutSessionId,

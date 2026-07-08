@@ -23,6 +23,7 @@ create table public.orders (
   recipient_country text default 'US',
   price_cents integer,
   proof_level text not null default 'standard',
+  template_title text,
   currency text default 'usd',
   stripe_checkout_session_id text,
   stripe_payment_intent_id text,

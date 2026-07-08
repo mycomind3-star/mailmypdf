@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button, Card } from "./ui";
 import { StatusBadge } from "./status-badge";
 import { getDemoOrder } from "@/lib/demo-store";
+import { saveCustomerOrder } from "@/lib/customer-archive";
 import { formatMoney } from "@/lib/utils";
 import { getProofLevelLabel } from "@/lib/proof-levels";
 
@@ -59,6 +60,58 @@ export function SuccessPage({
     hasLiveStripe && orderId && token ? `/api/orders/${orderId}/proof-packet?token=${encodeURIComponent(token)}` : null;
 
   useEffect(() => {
+    if (!activeOrder || !token) return;
+
+    const sender = hasLiveStripe
+      ? {
+          name: activeOrder.senderName ?? "—",
+          line1: (activeOrder as { senderAddressLine1?: string | null }).senderAddressLine1 ?? "—",
+          city: (activeOrder as { senderCity?: string | null }).senderCity ?? "—",
+          state: (activeOrder as { senderState?: string | null }).senderState ?? "—",
+          postalCode: (activeOrder as { senderPostalCode?: string | null }).senderPostalCode ?? "—",
+        }
+      : {
+          name: (demoOrder as { senderName?: string | null })?.senderName ?? "—",
+          line1: (demoOrder as { senderAddressLine1?: string | null })?.senderAddressLine1 ?? "—",
+          city: (demoOrder as { senderCity?: string | null })?.senderCity ?? "—",
+          state: (demoOrder as { senderState?: string | null })?.senderState ?? "—",
+          postalCode: (demoOrder as { senderPostalCode?: string | null })?.senderPostalCode ?? "—",
+        };
+
+    const recipient = hasLiveStripe
+      ? {
+          name: (activeOrder as { recipientName?: string | null }).recipientName ?? "—",
+          line1: (activeOrder as { recipientAddressLine1?: string | null }).recipientAddressLine1 ?? "—",
+          city: (activeOrder as { recipientCity?: string | null }).recipientCity ?? "—",
+          state: (activeOrder as { recipientState?: string | null }).recipientState ?? "—",
+          postalCode: (activeOrder as { recipientPostalCode?: string | null }).recipientPostalCode ?? "—",
+        }
+      : {
+          name: (demoOrder as { recipientName?: string | null })?.recipientName ?? "—",
+          line1: (demoOrder as { recipientAddressLine1?: string | null })?.recipientAddressLine1 ?? "—",
+          city: (demoOrder as { recipientCity?: string | null })?.recipientCity ?? "—",
+          state: (demoOrder as { recipientState?: string | null })?.recipientState ?? "—",
+          postalCode: (demoOrder as { recipientPostalCode?: string | null })?.recipientPostalCode ?? "—",
+        };
+
+    saveCustomerOrder({
+      orderId,
+      token,
+      createdAt: activeOrder.createdAt,
+      status: activeOrder.status,
+      proofLevel: (activeOrder as { proofLevel?: string | null }).proofLevel ?? "standard",
+      templateTitle: (activeOrder as { templateTitle?: string | null }).templateTitle ?? "Formal business letter",
+      recipientName: (activeOrder as { recipientName?: string | null }).recipientName ?? "—",
+      recipientState: (activeOrder as { recipientState?: string | null }).recipientState ?? "—",
+      priceCents: activeOrder.priceCents ?? 0,
+      pageCount: activeOrder.pageCount ?? 0,
+      fileName: activeOrder.fileName ?? "document.pdf",
+      sender,
+      recipient,
+    });
+  }, [activeOrder, demoOrder, hasLiveStripe, orderId, token]);
+
+  useEffect(() => {
     if (!orderId || !token) return;
     const timer = window.setTimeout(() => {
       router.replace(`/orders/${orderId}?token=${token}`);
@@ -95,6 +148,7 @@ export function SuccessPage({
               <Info title="File" value={activeOrder.fileName ?? "—"} />
               <Info title="Pages" value={`${activeOrder.pageCount ?? 0}`} />
               <Info title="Proof level" value={getProofLevelLabel((activeOrder as { proofLevel?: string | null }).proofLevel ?? "standard")} />
+              <Info title="Template" value={(activeOrder as { templateTitle?: string | null }).templateTitle ?? "—"} />
               <Info title="Price" value={formatMoney(activeOrder.priceCents ?? 0)} />
             </div>
           ) : null}
@@ -107,6 +161,9 @@ export function SuccessPage({
                 Download proof packet
               </Button>
             ) : null}
+            <Button href="/archive" variant="secondary">
+              Open archive
+            </Button>
             <Button href="/send">Create a Proof File</Button>
           </div>
         </Card>

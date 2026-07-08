@@ -1,5 +1,6 @@
 export const navLinks = [
   { href: "/", label: "Home" },
+  { href: "/archive", label: "Archive" },
   { href: "/templates", label: "Templates" },
   { href: "/send", label: "Send" },
   { href: "/pricing", label: "Pricing" },

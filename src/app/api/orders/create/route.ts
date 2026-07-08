@@ -4,7 +4,11 @@ import { hasSupabaseEnv } from "@/lib/env";
 import { normalizeProofLevel } from "@/lib/proof-levels";
 
 export async function POST(request: Request) {
-  const body = (await request.json().catch(() => ({}))) as { email?: string; proofLevel?: unknown };
+  const body = (await request.json().catch(() => ({}))) as {
+    email?: string;
+    proofLevel?: unknown;
+    templateTitle?: string | null;
+  };
   if (!body.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
     return NextResponse.json({ error: "Valid email is required." }, { status: 400 });
   }
@@ -12,9 +16,12 @@ export async function POST(request: Request) {
   const proofLevel = normalizeProofLevel(body.proofLevel);
 
   if (hasSupabaseEnv()) {
-    const order = await createDraftOrder(body.email, proofLevel);
+    const order = await createDraftOrder(body.email, proofLevel, body.templateTitle ?? null);
     if (order) {
-      await addOrderEvent(order.id, "order.created", "Draft order created.", { proof_level: proofLevel });
+      await addOrderEvent(order.id, "order.created", "Draft order created.", {
+        proof_level: proofLevel,
+        template_title: body.templateTitle ?? null,
+      });
       return NextResponse.json({
         orderId: order.id,
         lookupToken: order.public_lookup_token,

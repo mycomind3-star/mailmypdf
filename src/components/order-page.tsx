@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getDemoOrder } from "@/lib/demo-store";
+import { saveCustomerOrder } from "@/lib/customer-archive";
 import { formatDate, formatMoney } from "@/lib/utils";
 import { getProofLevelLabel } from "@/lib/proof-levels";
 import { StatusBadge } from "./status-badge";
@@ -23,6 +24,7 @@ type LiveOrderResponse = {
   recipientState: string | null;
   priceCents: number | null;
   proofLevel: string | null;
+  templateTitle: string | null;
   createdAt: string;
   paidAt: string | null;
   submittedToProviderAt: string | null;
@@ -33,10 +35,12 @@ type LiveOrderResponse = {
   events: Array<{ eventType: string; message: string; createdAt: string }>;
   senderName: string | null;
   senderAddressLine1: string | null;
+  senderAddressLine2: string | null;
   senderCity: string | null;
   senderState: string | null;
   senderPostalCode: string | null;
   recipientAddressLine1: string | null;
+  recipientAddressLine2: string | null;
   recipientPostalCode: string | null;
 };
 
@@ -86,6 +90,60 @@ export function OrderPage({ orderId, token }: OrderPageProps) {
   const demoOrder = !hasLiveStripe ? getDemoOrder(orderId) : undefined;
   const activeOrder = liveOrder ?? demoOrder;
   const accessError = hasLiveStripe && !token ? "We could not open this order with the provided token." : error;
+
+  useEffect(() => {
+    if (!activeOrder || !token) return;
+
+    const sender = hasLiveStripe
+      ? {
+          name: activeOrder.senderName ?? "—",
+          line1: activeOrder.senderAddressLine1 ?? "—",
+          line2: "",
+          city: activeOrder.senderCity ?? "—",
+          state: activeOrder.senderState ?? "—",
+          postalCode: activeOrder.senderPostalCode ?? "—",
+        }
+      : {
+          name: demoOrder?.senderName ?? "—",
+          line1: demoOrder?.senderAddressLine1 ?? "—",
+          city: demoOrder?.senderCity ?? "—",
+          state: demoOrder?.senderState ?? "—",
+          postalCode: demoOrder?.senderPostalCode ?? "—",
+        };
+
+    const recipient = hasLiveStripe
+      ? {
+          name: activeOrder.recipientName ?? "—",
+          line1: activeOrder.recipientAddressLine1 ?? "—",
+          line2: (activeOrder as { recipientAddressLine2?: string | null }).recipientAddressLine2 ?? "",
+          city: activeOrder.recipientCity ?? "—",
+          state: activeOrder.recipientState ?? "—",
+          postalCode: activeOrder.recipientPostalCode ?? "—",
+        }
+      : {
+          name: demoOrder?.recipientName ?? "—",
+          line1: demoOrder?.recipientAddressLine1 ?? "—",
+          city: demoOrder?.recipientCity ?? "—",
+          state: demoOrder?.recipientState ?? "—",
+          postalCode: demoOrder?.recipientPostalCode ?? "—",
+        };
+
+    saveCustomerOrder({
+      orderId: activeOrder.id,
+      token,
+      createdAt: activeOrder.createdAt,
+      status: activeOrder.status,
+      proofLevel: activeOrder.proofLevel ?? "standard",
+      templateTitle: activeOrder.templateTitle ?? "Formal business letter",
+      recipientName: activeOrder.recipientName ?? "—",
+      recipientState: activeOrder.recipientState ?? "—",
+      priceCents: activeOrder.priceCents ?? 0,
+      pageCount: activeOrder.pageCount ?? 0,
+      fileName: activeOrder.fileName ?? "document.pdf",
+      sender,
+      recipient,
+    });
+  }, [activeOrder, demoOrder, token]);
 
   if (loading) {
     return (
@@ -149,6 +207,7 @@ export function OrderPage({ orderId, token }: OrderPageProps) {
               <SummaryItem label="Recipient" value={activeOrder.recipientName ?? "—"} />
               <SummaryItem label="Recipient city/state" value={`${activeOrder.recipientCity ?? "—"}, ${activeOrder.recipientState ?? "—"}`} />
               <SummaryItem label="Proof level" value={getProofLevelLabel(activeOrder.proofLevel ?? "standard")} />
+              <SummaryItem label="Template" value={activeOrder.templateTitle ?? "—"} />
               <SummaryItem label="Price" value={formatMoney(activeOrder.priceCents ?? 0)} />
               <SummaryItem label="Created" value={formatDate(activeOrder.createdAt)} />
             </dl>
@@ -195,6 +254,9 @@ export function OrderPage({ orderId, token }: OrderPageProps) {
               ) : null}
               <Button href="/send" className="w-full" variant="secondary">
                 Create another proof file
+              </Button>
+              <Button href="/archive" className="w-full" variant="secondary">
+                Open archive
               </Button>
               <div className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface-muted)] p-4 text-sm text-[color:var(--muted)]">
                 <p className="font-semibold text-[color:var(--foreground)]">Secure link</p>

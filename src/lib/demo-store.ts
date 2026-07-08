@@ -28,6 +28,7 @@ export type DemoOrder = {
   recipientPostalCode: string;
   priceCents: number;
   proofLevel: ProofLevel;
+  templateTitle: string;
   currency: "usd";
   stripeCheckoutSessionId?: string;
   lobLetterId?: string;
@@ -110,6 +111,7 @@ function seedOrders(): DemoOrder[] {
       recipientPostalCode: "94105",
       priceCents: 699,
       proofLevel: "proof",
+      templateTitle: "Client payment reminder",
       currency: "usd",
       stripeCheckoutSessionId: "cs_demo_123",
       lobLetterId: "ltr_demo_456",
@@ -149,6 +151,7 @@ function seedOrders(): DemoOrder[] {
       recipientPostalCode: "98101",
       priceCents: 499,
       proofLevel: "standard",
+      templateTitle: "General formal business letter",
       currency: "usd",
       createdAt: now,
       paidAt: now,

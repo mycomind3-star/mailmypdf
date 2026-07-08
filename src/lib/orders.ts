@@ -27,6 +27,7 @@ export type ServerOrder = {
   recipient_postal_code: string | null;
   price_cents: number | null;
   proof_level: string | null;
+  template_title: string | null;
   currency: string | null;
   stripe_checkout_session_id: string | null;
   stripe_payment_intent_id: string | null;
@@ -76,12 +77,17 @@ export async function findOrderByLobLetterId(lobLetterId: string) {
   return data as ServerOrder | null;
 }
 
-export async function createDraftOrder(email: string, proofLevel: string = "standard") {
+export async function createDraftOrder(email: string, proofLevel: string = "standard", templateTitle: string | null = null) {
   const db = getSupabaseAdminClient();
   if (!db) return null;
   const { data, error } = await db
     .from("orders")
-    .insert({ email, status: "draft", proof_level: normalizeProofLevel(proofLevel) })
+    .insert({
+      email,
+      status: "draft",
+      proof_level: normalizeProofLevel(proofLevel),
+      template_title: templateTitle,
+    })
     .select("*")
     .single();
   if (error) throw error;
@@ -219,7 +225,11 @@ export async function submitOrderToLob(orderId: string) {
       address_country: "US",
     },
     file: signedPdf,
-    metadata: { order_id: orderId, proof_level: normalizeProofLevel(order.proof_level) },
+    metadata: {
+      order_id: orderId,
+      proof_level: normalizeProofLevel(order.proof_level),
+      template_title: String(order.template_title ?? ""),
+    },
   });
 
   const rawResponse = result.raw as Record<string, unknown>;

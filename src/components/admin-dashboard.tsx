@@ -15,6 +15,7 @@ type AdminOrder = DemoOrder & {
   recipientAddressLine2?: string | null;
   currency?: string | null;
   proofLevel?: string | null;
+  templateTitle?: string | null;
   mailedAt?: string | null;
   deliveredAt?: string | null;
   failedAt?: string | null;
@@ -242,6 +243,7 @@ export function AdminDashboard() {
                 <p><span className="font-semibold text-[color:var(--foreground)]">Recipient:</span> {selected.recipientName}</p>
                 <p><span className="font-semibold text-[color:var(--foreground)]">Status:</span> {orderStatusLabels[selected.status]}</p>
                 <p><span className="font-semibold text-[color:var(--foreground)]">Proof level:</span> {getProofLevelLabel(selected.proofLevel ?? "standard")}</p>
+                <p><span className="font-semibold text-[color:var(--foreground)]">Template:</span> {selected.templateTitle ?? "—"}</p>
                 <p><span className="font-semibold text-[color:var(--foreground)]">Lob ID:</span> {selected.lobLetterId ?? "—"}</p>
                 <p><span className="font-semibold text-[color:var(--foreground)]">Stripe session:</span> {selected.stripeCheckoutSessionId ?? "—"}</p>
                 <p><span className="font-semibold text-[color:var(--foreground)]">Page count:</span> {selected.pageCount}</p>

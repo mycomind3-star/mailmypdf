@@ -41,6 +41,7 @@ export async function POST(request: Request) {
         order_id: order.id,
         lookup_token: order.public_lookup_token,
         proof_level: String(order.proof_level ?? "standard"),
+        template_title: String(order.template_title ?? ""),
       },
     });
 

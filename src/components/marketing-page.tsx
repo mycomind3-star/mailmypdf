@@ -113,6 +113,9 @@ export function MarketingPage() {
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <Button href="/send">Send a Letter</Button>
+              <Button href="/archive" variant="secondary">
+                Open Archive
+              </Button>
               <Button href="#proof-file" variant="secondary">
                 See Proof File Example
               </Button>
