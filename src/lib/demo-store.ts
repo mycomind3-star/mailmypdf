@@ -1,4 +1,5 @@
 import { orderStatusLabels } from "./site-content";
+import type { ProofLevel } from "./proof-levels";
 
 export type DemoEvent = {
   eventType: string;
@@ -26,6 +27,7 @@ export type DemoOrder = {
   recipientState: string;
   recipientPostalCode: string;
   priceCents: number;
+  proofLevel: ProofLevel;
   currency: "usd";
   stripeCheckoutSessionId?: string;
   lobLetterId?: string;
@@ -107,6 +109,7 @@ function seedOrders(): DemoOrder[] {
       recipientState: "CA",
       recipientPostalCode: "94105",
       priceCents: 699,
+      proofLevel: "proof",
       currency: "usd",
       stripeCheckoutSessionId: "cs_demo_123",
       lobLetterId: "ltr_demo_456",
@@ -145,6 +148,7 @@ function seedOrders(): DemoOrder[] {
       recipientState: "WA",
       recipientPostalCode: "98101",
       priceCents: 499,
+      proofLevel: "standard",
       currency: "usd",
       createdAt: now,
       paidAt: now,

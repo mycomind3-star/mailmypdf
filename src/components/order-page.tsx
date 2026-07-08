@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { getDemoOrder } from "@/lib/demo-store";
 import { formatDate, formatMoney } from "@/lib/utils";
+import { getProofLevelLabel } from "@/lib/proof-levels";
 import { StatusBadge } from "./status-badge";
 import { Button, Card } from "./ui";
 import { OrderTimeline } from "./order-timeline";
@@ -21,6 +22,7 @@ type LiveOrderResponse = {
   recipientCity: string | null;
   recipientState: string | null;
   priceCents: number | null;
+  proofLevel: string | null;
   createdAt: string;
   paidAt: string | null;
   submittedToProviderAt: string | null;
@@ -146,6 +148,7 @@ export function OrderPage({ orderId, token }: OrderPageProps) {
               <SummaryItem label="Page count" value={`${activeOrder.pageCount ?? 0} pages`} />
               <SummaryItem label="Recipient" value={activeOrder.recipientName ?? "—"} />
               <SummaryItem label="Recipient city/state" value={`${activeOrder.recipientCity ?? "—"}, ${activeOrder.recipientState ?? "—"}`} />
+              <SummaryItem label="Proof level" value={getProofLevelLabel(activeOrder.proofLevel ?? "standard")} />
               <SummaryItem label="Price" value={formatMoney(activeOrder.priceCents ?? 0)} />
               <SummaryItem label="Created" value={formatDate(activeOrder.createdAt)} />
             </dl>

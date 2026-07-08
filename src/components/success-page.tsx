@@ -6,6 +6,7 @@ import { Button, Card } from "./ui";
 import { StatusBadge } from "./status-badge";
 import { getDemoOrder } from "@/lib/demo-store";
 import { formatMoney } from "@/lib/utils";
+import { getProofLevelLabel } from "@/lib/proof-levels";
 
 export function SuccessPage({
   orderId,
@@ -93,6 +94,7 @@ export function SuccessPage({
             <div className="mt-6 grid gap-3 rounded-2xl border border-[color:var(--border)] bg-white p-4 text-left md:grid-cols-3">
               <Info title="File" value={activeOrder.fileName ?? "—"} />
               <Info title="Pages" value={`${activeOrder.pageCount ?? 0}`} />
+              <Info title="Proof level" value={getProofLevelLabel((activeOrder as { proofLevel?: string | null }).proofLevel ?? "standard")} />
               <Info title="Price" value={formatMoney(activeOrder.priceCents ?? 0)} />
             </div>
           ) : null}

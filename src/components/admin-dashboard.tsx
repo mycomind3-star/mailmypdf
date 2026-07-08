@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { appendDemoEvent, listDemoOrders, patchDemoOrder, DemoOrder } from "@/lib/demo-store";
+import { getProofLevelLabel } from "@/lib/proof-levels";
 import { formatDate, formatMoney } from "@/lib/utils";
 import { orderStatusLabels } from "@/lib/site-content";
 import { StatusBadge } from "./status-badge";
@@ -13,6 +14,7 @@ type AdminOrder = DemoOrder & {
   senderAddressLine2?: string | null;
   recipientAddressLine2?: string | null;
   currency?: string | null;
+  proofLevel?: string | null;
   mailedAt?: string | null;
   deliveredAt?: string | null;
   failedAt?: string | null;
@@ -217,11 +219,11 @@ export function AdminDashboard() {
                       className={`grid w-full grid-cols-[1.1fr_1fr_0.9fr_0.7fr_0.75fr] gap-3 border-b border-[color:var(--border)] px-4 py-4 text-left transition hover:bg-[color:var(--surface-muted)] ${selected?.id === order.id ? "bg-[color:var(--accent-soft)]" : ""}`}
                     >
                       <span className="text-sm text-[color:var(--foreground)]">{formatDate(order.createdAt)}</span>
-                      <span className="truncate text-sm text-[color:var(--muted)]">{order.email}</span>
-                      <span className="truncate text-sm text-[color:var(--muted)]">{order.recipientName}</span>
-                      <span className="text-sm text-[color:var(--muted)]">{order.recipientState}</span>
-                      <span className="text-sm font-medium text-[color:var(--foreground)]">{formatMoney(order.priceCents ?? 0)}</span>
-                    </button>
+                    <span className="truncate text-sm text-[color:var(--muted)]">{order.email}</span>
+                    <span className="truncate text-sm text-[color:var(--muted)]">{order.recipientName}</span>
+                    <span className="text-sm text-[color:var(--muted)]">{order.recipientState}</span>
+                    <span className="text-sm font-medium text-[color:var(--foreground)]">{formatMoney(order.priceCents ?? 0)}</span>
+                  </button>
                   ))
                 : null}
               {!loading && !filtered.length ? <p className="p-6 text-sm text-[color:var(--muted)]">No matching orders.</p> : null}
@@ -239,6 +241,7 @@ export function AdminDashboard() {
                 <p><span className="font-semibold text-[color:var(--foreground)]">Customer:</span> {selected.email}</p>
                 <p><span className="font-semibold text-[color:var(--foreground)]">Recipient:</span> {selected.recipientName}</p>
                 <p><span className="font-semibold text-[color:var(--foreground)]">Status:</span> {orderStatusLabels[selected.status]}</p>
+                <p><span className="font-semibold text-[color:var(--foreground)]">Proof level:</span> {getProofLevelLabel(selected.proofLevel ?? "standard")}</p>
                 <p><span className="font-semibold text-[color:var(--foreground)]">Lob ID:</span> {selected.lobLetterId ?? "—"}</p>
                 <p><span className="font-semibold text-[color:var(--foreground)]">Stripe session:</span> {selected.stripeCheckoutSessionId ?? "—"}</p>
                 <p><span className="font-semibold text-[color:var(--foreground)]">Page count:</span> {selected.pageCount}</p>

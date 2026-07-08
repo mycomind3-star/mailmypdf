@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getStripeClient } from "@/lib/stripe";
 import { findOrderById, findOrderByLookupToken, updateOrder, addOrderEvent } from "@/lib/orders";
 import { hasStripeEnv, getAppUrl } from "@/lib/env";
+import { getProofLevelLabel } from "@/lib/proof-levels";
 
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => ({}))) as { orderId?: string; lookupToken?: string };
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
             currency: order.currency ?? "usd",
             product_data: {
               name: "ProofPost letter",
-              description: `${order.page_count ?? 0} pages`,
+              description: `${order.page_count ?? 0} pages • ${getProofLevelLabel(order.proof_level)}`,
             },
             unit_amount: order.price_cents ?? 499,
           },
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
       metadata: {
         order_id: order.id,
         lookup_token: order.public_lookup_token,
+        proof_level: String(order.proof_level ?? "standard"),
       },
     });
 

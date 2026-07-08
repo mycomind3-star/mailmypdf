@@ -1,5 +1,6 @@
 ProofPost is a Next.js app for sending formal letters and keeping a clean proof packet for each paid order.
 Each paid order exposes a proof packet download that bundles the original PDF, a receipt, and the order timeline.
+Orders also store a proof level so the archive matches the selected letter type.
 
 ## Local setup
 

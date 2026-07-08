@@ -15,7 +15,7 @@ export async function GET() {
   const { data, error } = await db
     .from("orders")
     .select(
-      "id,email,status,file_name,file_size_bytes,page_count,sender_name,sender_address_line1,sender_address_line2,sender_city,sender_state,sender_postal_code,recipient_name,recipient_address_line1,recipient_address_line2,recipient_city,recipient_state,recipient_postal_code,price_cents,currency,stripe_checkout_session_id,lob_letter_id,created_at,paid_at,submitted_to_provider_at,mailed_at,delivered_at,failed_at,admin_notes",
+      "id,email,status,file_name,file_size_bytes,page_count,sender_name,sender_address_line1,sender_address_line2,sender_city,sender_state,sender_postal_code,recipient_name,recipient_address_line1,recipient_address_line2,recipient_city,recipient_state,recipient_postal_code,price_cents,proof_level,currency,stripe_checkout_session_id,lob_letter_id,created_at,paid_at,submitted_to_provider_at,mailed_at,delivered_at,failed_at,admin_notes",
     )
     .order("created_at", { ascending: false })
     .limit(100);
@@ -46,6 +46,7 @@ export async function GET() {
         recipientState: order.recipient_state,
         recipientPostalCode: order.recipient_postal_code,
         priceCents: order.price_cents,
+        proofLevel: order.proof_level,
         currency: order.currency,
         stripeCheckoutSessionId: order.stripe_checkout_session_id,
         lobLetterId: order.lob_letter_id,

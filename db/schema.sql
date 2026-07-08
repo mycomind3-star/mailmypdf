@@ -22,6 +22,7 @@ create table public.orders (
   recipient_postal_code text,
   recipient_country text default 'US',
   price_cents integer,
+  proof_level text not null default 'standard',
   currency text default 'usd',
   stripe_checkout_session_id text,
   stripe_payment_intent_id text,
@@ -101,4 +102,3 @@ create trigger set_orders_updated_at
 before update on public.orders
 for each row
 execute function public.set_updated_at();
-

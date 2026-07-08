@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { appendDemoEvent, patchDemoOrder, upsertDemoOrder } from "@/lib/demo-store";
 import { calculateLetterPrice, pricingCopy } from "@/lib/pricing";
 import { detectPdfPageCount } from "@/lib/pdf";
+import { getProofLevelLabel, proofLevelOptions, type ProofLevel } from "@/lib/proof-levels";
 import { templates, type Template } from "@/lib/templates";
 import { formatMoney } from "@/lib/utils";
 import { Button, Card, Input, Label, SectionHeading } from "./ui";
@@ -27,6 +28,7 @@ type DraftOrder = {
   subject: string;
   goal: string;
   tone: "formal" | "calm" | "concise";
+  proofLevel: ProofLevel;
   fileName: string;
   fileSizeBytes: number;
   file: File | null;
@@ -56,6 +58,7 @@ const emptyDraft = (): DraftOrder => ({
   subject: "",
   goal: "",
   tone: "formal",
+  proofLevel: "proof",
   fileName: "",
   fileSizeBytes: 0,
   file: null,
@@ -220,7 +223,7 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
       setDraft(nextDraft);
 
       if (!useLiveStripeCheckout) {
-      upsertDemoOrder({
+        upsertDemoOrder({
           id: draft.orderId,
           token: draft.lookupToken,
           email: draft.email,
@@ -229,6 +232,7 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
           fileSizeBytes: file.size,
           pageCount,
           fileDataUrl: dataUrl,
+          proofLevel: draft.proofLevel,
           senderName: draft.sender.name,
           senderAddressLine1: draft.sender.line1,
           senderCity: draft.sender.city,
@@ -271,6 +275,7 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
       patchDemoOrder(draft.orderId, {
         status: "priced",
         email: draft.email,
+        proofLevel: draft.proofLevel,
         senderName: draft.sender.name,
         senderAddressLine1: draft.sender.line1,
         senderCity: draft.sender.city,
@@ -311,6 +316,7 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
 
           const created = await postJson<{ orderId: string; lookupToken: string }>("/api/orders/create", {
             email: draft.email.trim(),
+            proofLevel: draft.proofLevel,
           });
 
           const uploadFormData = new FormData();
@@ -387,6 +393,7 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
       recipientCity: draft.recipient.city,
       recipientState: draft.recipient.state,
       recipientPostalCode: draft.recipient.postalCode,
+      proofLevel: draft.proofLevel,
       priceCents: finalPriceCents,
       currency: "usd",
       stripeCheckoutSessionId: checkoutSessionId,
@@ -542,6 +549,34 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
                         Phase 1 uses local polish controls. Phase 3 adds a real AI writing assistant.
                       </p>
                     </div>
+                    <div>
+                      <Label>Proof level</Label>
+                      <div className="grid gap-2 md:grid-cols-3">
+                        {proofLevelOptions.map((item) => (
+                          <button
+                            key={item.value}
+                            type="button"
+                            onClick={() => {
+                              updateDraft({ proofLevel: item.value });
+                              if (!useLiveStripeCheckout && draft.fileName) {
+                                patchDemoOrder(draft.orderId, { proofLevel: item.value });
+                              }
+                            }}
+                            className={`rounded-2xl border px-4 py-3 text-left transition ${
+                              draft.proofLevel === item.value
+                                ? "border-[color:var(--accent)] bg-[color:var(--accent-soft)] text-[color:var(--foreground)]"
+                                : "border-[color:var(--border)] bg-white text-[color:var(--muted)] hover:border-[color:var(--border-strong)]"
+                            }`}
+                          >
+                            <div className="text-sm font-semibold">{item.label}</div>
+                            <div className="mt-1 text-xs leading-5">{item.detail}</div>
+                          </button>
+                        ))}
+                      </div>
+                      <p className="mt-2 text-xs text-slate-500">
+                        This choice is stored on the order record and included in the proof packet.
+                      </p>
+                    </div>
                   </div>
 
                   <Label>Email</Label>
@@ -591,6 +626,13 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Starting point</p>
                     <p className="mt-2 text-sm font-semibold text-[color:var(--foreground)]">{selectedTemplate?.title}</p>
                     <p className="mt-1 text-sm text-[color:var(--muted)]">{selectedTemplate?.summary}</p>
+                    <div className="mt-3 rounded-2xl border border-[color:var(--border)] bg-white p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Proof level</p>
+                      <p className="mt-2 text-sm font-semibold text-[color:var(--foreground)]">{getProofLevelLabel(draft.proofLevel)}</p>
+                      <p className="mt-1 text-sm text-[color:var(--muted)]">
+                        {proofLevelOptions.find((item) => item.value === draft.proofLevel)?.detail}
+                      </p>
+                    </div>
                     <div className="mt-4 rounded-2xl border border-[color:var(--border)] bg-white p-4 text-sm leading-6 text-[color:var(--foreground)]">
                       <pre className="whitespace-pre-wrap font-sans">{draftPreview}</pre>
                     </div>
@@ -692,6 +734,10 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
                         {draft.recipient.city}, {draft.recipient.state} {draft.recipient.postalCode}
                       </p>
                     </div>
+                    <div>
+                      <p className="font-semibold text-[color:var(--foreground)]">Proof level</p>
+                      <p>{getProofLevelLabel(draft.proofLevel)}</p>
+                    </div>
                     <p className="rounded-2xl bg-[color:var(--surface-muted)] p-4 text-sm text-[color:var(--foreground)]">
                       Please review carefully. We prepare the letter and proof record exactly as submitted.
                     </p>
@@ -761,6 +807,10 @@ export function SendFlow({ templates: availableTemplates = templates }: { templa
               <div className="flex items-center justify-between gap-4">
                 <span>Recipient</span>
                 <span className="font-medium text-[color:var(--foreground)]">{draft.recipient.city || "—"}</span>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <span>Proof level</span>
+                <span className="font-medium text-[color:var(--foreground)]">{getProofLevelLabel(draft.proofLevel)}</span>
               </div>
             </div>
           </Card>
