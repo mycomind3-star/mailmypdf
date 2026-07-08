@@ -178,7 +178,12 @@ export function AdminDashboard() {
             </p>
           ) : null}
         </div>
-        <StatusBadge status={selected?.status ?? "draft"} />
+        <div className="flex flex-wrap items-center gap-3">
+          <Button href="/admin/seo" variant="secondary">
+            SEO hub
+          </Button>
+          <StatusBadge status={selected?.status ?? "draft"} />
+        </div>
       </div>
 
       <div className="mt-8 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
