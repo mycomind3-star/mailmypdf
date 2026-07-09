@@ -16,6 +16,17 @@ type AdminOrder = DemoOrder & {
   currency?: string | null;
   proofLevel?: string | null;
   templateTitle?: string | null;
+  mailProvider?: string | null;
+  providerLetterId?: string | null;
+  providerTrackingNumber?: string | null;
+  providerExpectedDeliveryDate?: string | null;
+  providerTrackingEvents?: Array<Record<string, unknown>>;
+  providerRawResponse?: unknown;
+  lobExpectedDeliveryDate?: string | null;
+  lobTrackingEvents?: Array<Record<string, unknown>>;
+  lobRawResponse?: unknown;
+  addressVerificationStatus?: string | null;
+  addressVerificationRaw?: unknown;
   mailedAt?: string | null;
   deliveredAt?: string | null;
   failedAt?: string | null;
@@ -25,6 +36,7 @@ const useLiveAdmin = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 const useAutoSubmitToLob = process.env.AUTO_SUBMIT_TO_LOB === "true";
+const lobMode = process.env.LOB_MODE === "live" ? "live" : "test";
 
 export function AdminDashboard() {
   const [orders, setOrders] = useState<AdminOrder[]>(() => (useLiveAdmin ? [] : listDemoOrders()));
@@ -78,6 +90,8 @@ export function AdminDashboard() {
   }, [orders, query, status]);
 
   const selected = filtered.find((order) => order.id === selectedId) ?? filtered[0] ?? orders[0];
+  const selectedTrackingEvents =
+    selected?.providerTrackingEvents?.length ? selected.providerTrackingEvents : selected?.lobTrackingEvents ?? [];
 
   async function refresh() {
     if (useLiveAdmin) {
@@ -173,9 +187,10 @@ export function AdminDashboard() {
             Review orders, catch failed submissions, and resolve proof-file issues without exposing raw provider payloads to the customer.
           </p>
           {useLiveAdmin ? (
-            <p className="mt-3 text-sm font-medium text-[color:var(--accent-strong)]">
-              Live admin mode is read-only unless manual Lob submission is enabled.
-            </p>
+            <div className="mt-3 space-y-1 text-sm font-medium text-[color:var(--accent-strong)]">
+              <p>Live admin mode is read-only unless manual Lob submission is enabled.</p>
+              <p>Lob is running in {lobMode} mode. {useAutoSubmitToLob ? "Paid orders auto-submit after payment." : "Paid orders stay queued for manual submission."}</p>
+            </div>
           ) : null}
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -249,11 +264,17 @@ export function AdminDashboard() {
                 <p><span className="font-semibold text-[color:var(--foreground)]">Status:</span> {orderStatusLabels[selected.status]}</p>
                 <p><span className="font-semibold text-[color:var(--foreground)]">Proof level:</span> {getProofLevelLabel(selected.proofLevel ?? "standard")}</p>
                 <p><span className="font-semibold text-[color:var(--foreground)]">Template:</span> {selected.templateTitle ?? "—"}</p>
+                <p><span className="font-semibold text-[color:var(--foreground)]">Mail provider:</span> {selected.mailProvider ?? "—"}</p>
                 <p><span className="font-semibold text-[color:var(--foreground)]">Lob ID:</span> {selected.lobLetterId ?? "—"}</p>
+                <p><span className="font-semibold text-[color:var(--foreground)]">Provider letter ID:</span> {selected.providerLetterId ?? "—"}</p>
+                <p><span className="font-semibold text-[color:var(--foreground)]">Tracking number:</span> {selected.providerTrackingNumber ?? "—"}</p>
+                <p><span className="font-semibold text-[color:var(--foreground)]">Expected delivery:</span> {selected.providerExpectedDeliveryDate ?? selected.lobExpectedDeliveryDate ?? "—"}</p>
+                <p><span className="font-semibold text-[color:var(--foreground)]">Address verification:</span> {selected.addressVerificationStatus ?? "—"}</p>
                 <p><span className="font-semibold text-[color:var(--foreground)]">Stripe session:</span> {selected.stripeCheckoutSessionId ?? "—"}</p>
                 <p><span className="font-semibold text-[color:var(--foreground)]">Page count:</span> {selected.pageCount}</p>
                 <p><span className="font-semibold text-[color:var(--foreground)]">Price:</span> {formatMoney(selected.priceCents ?? 0)}</p>
                 <p><span className="font-semibold text-[color:var(--foreground)]">Admin note:</span> {selected.adminNotes ?? "None"}</p>
+                <p><span className="font-semibold text-[color:var(--foreground)]">Lob tracking events:</span> {selectedTrackingEvents.length}</p>
               </div>
             ) : (
               <p className="mt-4 text-sm text-[color:var(--muted)]">Select an order to inspect it.</p>
@@ -271,7 +292,11 @@ export function AdminDashboard() {
                   <Button
                     onClick={submitToLob}
                     variant="secondary"
-                    disabled={loading || selected.status === "provider_processing" || Boolean(selected.lobLetterId)}
+                    disabled={
+                      loading ||
+                      selected.status === "provider_processing" ||
+                      Boolean(selected.lobLetterId || selected.providerLetterId)
+                    }
                   >
                     Submit to Lob
                   </Button>

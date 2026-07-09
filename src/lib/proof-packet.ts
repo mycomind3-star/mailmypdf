@@ -85,9 +85,14 @@ export async function buildProofPacketZip(order: ServerOrder, pdfBytes: Uint8Arr
           providerIds: {
             stripeCheckoutSessionId: order.stripe_checkout_session_id,
             stripePaymentIntentId: order.stripe_payment_intent_id,
+            mailProvider: order.mail_provider,
             lobLetterId: order.lob_letter_id,
+            providerLetterId: order.provider_letter_id,
+            providerTrackingNumber: order.provider_tracking_number,
           },
           lobExpectedDeliveryDate: order.lob_expected_delivery_date,
+          providerExpectedDeliveryDate: order.provider_expected_delivery_date,
+          addressVerificationStatus: order.address_verification_status,
         },
         timeline: orderedEvents.map((event) => ({
           eventType: event.eventType,

@@ -1,9 +1,12 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { getAppUrl, getEnv } from "@/lib/env";
+import { mapLobEventToOrderStatus } from "@/lib/lob";
 import {
   addOrderEvent,
   findOrderByLobLetterId,
+  findOrderByProviderLetterId,
   recordWebhookEvent,
+  sendOrderEmail,
   updateOrder,
 } from "@/lib/orders";
 
@@ -22,6 +25,7 @@ type LobWebhookPayload = Record<string, unknown> & {
   status?: string;
   expected_delivery_date?: string;
   target_delivery_date?: string;
+  date_created?: string;
 };
 
 function parseTimestamp(value: string) {
@@ -105,86 +109,13 @@ function extractWebhookDetails(payload: LobWebhookPayload) {
     lobLetterId,
     resourceStatus,
     expectedDeliveryDate,
+    resource,
   };
 }
 
-function rankStatus(status: string) {
-  switch (status) {
-    case "draft":
-      return 0;
-    case "uploaded":
-      return 1;
-    case "priced":
-      return 2;
-    case "checkout_created":
-      return 3;
-    case "paid":
-      return 4;
-    case "submitted_to_provider":
-      return 5;
-    case "provider_processing":
-      return 6;
-    case "in_transit":
-      return 7;
-    case "mailed":
-      return 8;
-    case "delivered":
-      return 9;
-    case "returned":
-      return 9;
-    case "failed_provider_submission":
-      return 4;
-    case "failed_payment":
-      return 4;
-    default:
-      return 0;
-  }
-}
-
-function deriveOrderStatus(currentStatus: string, eventType: string, resourceStatus: string) {
-  const text = `${eventType} ${resourceStatus}`.toLowerCase();
-  let nextStatus = currentStatus;
-
-  if (text.includes("deliver")) {
-    nextStatus = "delivered";
-  } else if (text.includes("return")) {
-    nextStatus = "returned";
-  } else if (text.includes("mailed")) {
-    nextStatus = "mailed";
-  } else if (
-    text.includes("processed_for_delivery") ||
-    text.includes("in_transit") ||
-    text.includes("in transit")
-  ) {
-    nextStatus = "in_transit";
-  } else if (
-    text.includes("fail") ||
-    text.includes("error") ||
-    text.includes("reject") ||
-    text.includes("invalid")
-  ) {
-    nextStatus = "failed_provider_submission";
-  } else if (
-    text.includes("created") ||
-    text.includes("received") ||
-    text.includes("render") ||
-    text.includes("print") ||
-    text.includes("production") ||
-    text.includes("queued") ||
-    text.includes("submitted")
-  ) {
-    nextStatus = "provider_processing";
-  }
-
-  if (currentStatus === "delivered" || currentStatus === "returned") {
-    return currentStatus;
-  }
-
-  if (nextStatus === "failed_provider_submission") {
-    return nextStatus;
-  }
-
-  return rankStatus(nextStatus) >= rankStatus(currentStatus) ? nextStatus : currentStatus;
+function getTrackedString(resource: Record<string, unknown>, key: string) {
+  const value = resource[key];
+  return typeof value === "string" && value.trim() ? value : null;
 }
 
 function buildOrderLink(orderId: string, token: string) {
@@ -196,38 +127,63 @@ export async function handleLobWebhook(request: Request) {
   verifyWebhookSignature(rawBody, request.headers);
 
   const payload = JSON.parse(rawBody) as LobWebhookPayload;
-  const { eventId, eventType, lobLetterId, resourceStatus, expectedDeliveryDate } =
+  const { eventId, eventType, lobLetterId, resourceStatus, expectedDeliveryDate, resource } =
     extractWebhookDetails(payload);
+  const eventKey =
+    eventId ||
+    [lobLetterId, eventType, resourceStatus, expectedDeliveryDate]
+      .filter((value) => Boolean(String(value).trim()))
+      .join(":");
 
-  const stored = await recordWebhookEvent("lob", eventId || null, eventType, payload);
+  const stored = await recordWebhookEvent("lob", eventKey || null, eventType, payload);
   if (!stored) {
     return { received: true, duplicate: true } as const;
   }
 
-  const order = lobLetterId ? await findOrderByLobLetterId(lobLetterId).catch(() => null) : null;
+  const order = lobLetterId
+    ? ((await findOrderByLobLetterId(lobLetterId).catch(() => null)) ??
+        (await findOrderByProviderLetterId(lobLetterId).catch(() => null)))
+    : null;
   if (!order) {
     return { received: true, unmatched: true } as const;
   }
 
-  const nextStatus = deriveOrderStatus(order.status, eventType, resourceStatus);
+  const nextStatus = mapLobEventToOrderStatus(order.status, eventType, resourceStatus);
   const patch: Record<string, unknown> = {};
 
   if (nextStatus !== order.status) {
     patch.status = nextStatus;
   }
 
-  const currentTrackingEvents = Array.isArray(order.lob_tracking_events) ? order.lob_tracking_events : [];
+  const currentTrackingEvents =
+    Array.isArray(order.provider_tracking_events) && order.provider_tracking_events.length
+      ? order.provider_tracking_events
+      : Array.isArray(order.lob_tracking_events)
+        ? order.lob_tracking_events
+        : [];
+  const providerTrackingNumber =
+    getTrackedString(resource, "tracking_number") ??
+    getTrackedString(resource, "trackingNumber") ??
+    getTrackedString(payload as Record<string, unknown>, "tracking_number");
   const trackingEvent = {
     event_id: eventId || null,
     event_type: eventType,
     status: nextStatus,
     resource_id: lobLetterId || null,
+    resource_status: resourceStatus || null,
+    tracking_number: providerTrackingNumber,
     created_at: String(payload.date_created ?? new Date().toISOString()),
   };
 
+  patch.mail_provider = order.mail_provider ?? "lob";
+  patch.provider_letter_id = order.provider_letter_id ?? lobLetterId ?? null;
+  patch.provider_tracking_number = providerTrackingNumber ?? order.provider_tracking_number ?? null;
+  patch.provider_tracking_events = [...currentTrackingEvents, trackingEvent].slice(-50);
+  patch.provider_raw_response = payload;
   patch.lob_tracking_events = [...currentTrackingEvents, trackingEvent].slice(-50);
 
   if (expectedDeliveryDate) {
+    patch.provider_expected_delivery_date = expectedDeliveryDate;
     patch.lob_expected_delivery_date = expectedDeliveryDate;
   }
 
@@ -243,6 +199,14 @@ export async function handleLobWebhook(request: Request) {
     patch.failed_at = new Date().toISOString();
   }
 
+  if (nextStatus === "failed_provider_submission" && !order.failed_at) {
+    patch.failed_at = new Date().toISOString();
+  }
+
+  if (nextStatus !== "failed_provider_submission" && order.status === "failed_provider_submission") {
+    patch.failed_at = null;
+  }
+
   if (Object.keys(patch).length > 0) {
     await updateOrder(order.id, patch);
   }
@@ -254,9 +218,89 @@ export async function handleLobWebhook(request: Request) {
     resource_status: resourceStatus || null,
   });
 
+  const orderLink = buildOrderLink(order.id, order.public_lookup_token);
+  const notificationTasks: Promise<void>[] = [];
+
+  if (nextStatus === "mailed" && !order.mailed_at) {
+    notificationTasks.push(
+      (async () => {
+        try {
+          await sendOrderEmail(
+            order.email,
+            "Your letter has been mailed",
+            `<p>Your letter has been mailed.</p><p>Order link: <a href="${orderLink}">${orderLink}</a></p>`,
+          );
+        } catch (error) {
+          await addOrderEvent(order.id, "email.mailed_failed", "Mailed confirmation email failed to send.", {
+            error: error instanceof Error ? error.message : "Unknown Resend error",
+          });
+        }
+      })(),
+    );
+  }
+
+  if (nextStatus === "delivered" && !order.delivered_at) {
+    notificationTasks.push(
+      (async () => {
+        try {
+          await sendOrderEmail(
+            order.email,
+            "Your letter was delivered",
+            `<p>Your letter was delivered.</p><p>Order link: <a href="${orderLink}">${orderLink}</a></p>`,
+          );
+        } catch (error) {
+          await addOrderEvent(order.id, "email.delivered_failed", "Delivered confirmation email failed to send.", {
+            error: error instanceof Error ? error.message : "Unknown Resend error",
+          });
+        }
+      })(),
+    );
+  }
+
+  if (nextStatus === "returned" && !order.failed_at) {
+    notificationTasks.push(
+      (async () => {
+        try {
+          await sendOrderEmail(
+            order.email,
+            "Your letter was returned",
+            `<p>Your letter was returned by the mail carrier.</p><p>Order link: <a href="${orderLink}">${orderLink}</a></p>`,
+          );
+        } catch (error) {
+          await addOrderEvent(order.id, "email.returned_failed", "Returned confirmation email failed to send.", {
+            error: error instanceof Error ? error.message : "Unknown Resend error",
+          });
+        }
+      })(),
+    );
+  }
+
+  if (nextStatus === "failed_provider_submission" && !order.failed_at) {
+    notificationTasks.push(
+      (async () => {
+        try {
+          await sendOrderEmail(
+            order.email,
+            "We need to review your letter",
+            `<p>We could not complete the mailing submission yet.</p><p>Order link: <a href="${orderLink}">${orderLink}</a></p>`,
+          );
+        } catch (error) {
+          await addOrderEvent(order.id, "email.provider_review_failed", "Failure review email failed to send.", {
+            error: error instanceof Error ? error.message : "Unknown Resend error",
+          });
+        }
+      })(),
+    );
+  }
+
+  await Promise.all(notificationTasks);
+
   return {
     received: true,
     mailed: nextStatus === "mailed",
+    delivered: nextStatus === "delivered",
+    returned: nextStatus === "returned",
+    failed: nextStatus === "failed_provider_submission",
     orderLink: nextStatus === "mailed" ? buildOrderLink(order.id, order.public_lookup_token) : null,
     order,
     nextStatus,

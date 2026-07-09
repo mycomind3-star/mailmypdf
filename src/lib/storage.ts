@@ -31,9 +31,17 @@ export async function createOrderPdfSignedUrl(orderId: string) {
   const db = getSupabaseAdminClient();
   if (!db) return null;
 
-  const { data, error } = await db.storage
-    .from("letter-uploads")
-    .createSignedUrl(`orders/${orderId}/original.pdf`, 60 * 10);
+  const { data: order, error: orderError } = await db
+    .from("orders")
+    .select("final_pdf_path, upload_path")
+    .eq("id", orderId)
+    .maybeSingle();
+
+  if (orderError) throw orderError;
+
+  const objectPath = order?.final_pdf_path || order?.upload_path || `orders/${orderId}/original.pdf`;
+
+  const { data, error } = await db.storage.from("letter-uploads").createSignedUrl(objectPath, 60 * 10);
 
   if (error) throw error;
   return data.signedUrl;

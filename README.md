@@ -15,6 +15,7 @@ Orders also store a proof level so the archive matches the selected letter type.
    - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
 4. For Lob fulfillment, set:
    - `LOB_API_KEY`
+   - `LOB_MODE` (`test` is recommended for sandbox testing; `live` uses production Lob)
    - `LOB_WEBHOOK_SECRET`
    - `AUTO_SUBMIT_TO_LOB` (`true` to auto-submit paid orders, `false` for manual submission)
 5. Point your Lob webhook subscription at:

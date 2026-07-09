@@ -1,8 +1,8 @@
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { calculateLetterPrice } from "@/lib/pricing";
-import { getMailProvider } from "@/lib/lob";
+import { getMailProvider, verifyAddressWithLob } from "@/lib/lob";
 import { getResendClient } from "@/lib/resend";
-import { getAppUrl, getResendFromEmail } from "@/lib/env";
+import { getAppUrl, getLobMode, getResendFromEmail, isLobTestMode } from "@/lib/env";
 import { createOrderPdfSignedUrl } from "@/lib/storage";
 import { normalizeProofLevel } from "@/lib/proof-levels";
 
@@ -35,6 +35,14 @@ export type ServerOrder = {
   lob_expected_delivery_date: string | null;
   lob_tracking_events: unknown;
   lob_raw_response: unknown;
+  mail_provider: string | null;
+  provider_letter_id: string | null;
+  provider_tracking_number: string | null;
+  provider_expected_delivery_date: string | null;
+  provider_tracking_events: unknown;
+  provider_raw_response: unknown;
+  address_verification_status: string | null;
+  address_verification_raw: unknown;
   upload_path: string | null;
   final_pdf_path: string | null;
   public_lookup_token: string;
@@ -75,6 +83,22 @@ export async function findOrderByLobLetterId(lobLetterId: string) {
   const { data, error } = await db.from("orders").select("*").eq("lob_letter_id", lobLetterId).maybeSingle();
   if (error) throw error;
   return data as ServerOrder | null;
+}
+
+export async function findOrderByProviderLetterId(providerLetterId: string) {
+  const db = getSupabaseAdminClient();
+  if (!db) return null;
+  const { data, error } = await db.from("orders").select("*").eq("provider_letter_id", providerLetterId).maybeSingle();
+  if (error) throw error;
+  return data as ServerOrder | null;
+}
+
+function getStringValue(value: unknown) {
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+function getTrackingEvents(value: unknown) {
+  return Array.isArray(value) ? value : [];
 }
 
 export async function createDraftOrder(email: string, proofLevel: string = "standard", templateTitle: string | null = null) {
@@ -203,34 +227,86 @@ export async function submitOrderToLob(orderId: string) {
     throw new Error("Order is not ready for Lob submission");
   }
   if (order.lob_letter_id) return order.lob_letter_id;
+  if (order.provider_letter_id) {
+    await updateOrder(orderId, {
+      lob_letter_id: order.provider_letter_id,
+      mail_provider: order.mail_provider ?? "lob",
+    });
+    return order.provider_letter_id;
+  }
+
+  const recipientVerification = await verifyAddressWithLob({
+    primaryLine: order.recipient_address_line1!,
+    city: order.recipient_city!,
+    state: order.recipient_state!,
+    zipCode: order.recipient_postal_code!,
+  });
+  const verificationStatus = recipientVerification.status.toLowerCase();
+  const isDeliverable =
+    verificationStatus.includes("deliver") ||
+    verificationStatus.includes("valid") ||
+    verificationStatus.includes("verified") ||
+    verificationStatus.includes("unknown");
+
+  await updateOrder(orderId, {
+    address_verification_status: recipientVerification.status,
+    address_verification_raw: recipientVerification.raw,
+  });
+  await addOrderEvent(orderId, "provider.address_verified", "Recipient address verification completed.", {
+    status: recipientVerification.status,
+    lob_mode: getLobMode(),
+  });
+
+  if (!isDeliverable && !isLobTestMode()) {
+    await updateOrder(orderId, {
+      status: "failed_provider_submission",
+      failed_at: new Date().toISOString(),
+    });
+    await addOrderEvent(orderId, "provider.address_verification_failed", "Mail partner rejected the recipient address.", {
+      status: recipientVerification.status,
+    });
+    throw new Error("Recipient address could not be verified by Lob.");
+  }
 
   const signedPdf = (await createOrderPdfSignedUrl(orderId)) ?? `${getAppUrl()}/api/orders/${orderId}/download`;
-  const result = await provider.createLetter({
-    to: {
-      name: order.recipient_name!,
-      address_line1: order.recipient_address_line1!,
-      address_line2: order.recipient_address_line2 ?? undefined,
-      address_city: order.recipient_city!,
-      address_state: order.recipient_state!,
-      address_zip: order.recipient_postal_code!,
-      address_country: "US",
-    },
-    from: {
-      name: order.sender_name!,
-      address_line1: order.sender_address_line1!,
-      address_line2: order.sender_address_line2 ?? undefined,
-      address_city: order.sender_city!,
-      address_state: order.sender_state!,
-      address_zip: order.sender_postal_code!,
-      address_country: "US",
-    },
-    file: signedPdf,
-    metadata: {
-      order_id: orderId,
-      proof_level: normalizeProofLevel(order.proof_level),
-      template_title: String(order.template_title ?? ""),
-    },
-  });
+  let result;
+  try {
+    result = await provider.createLetter({
+      to: {
+        name: order.recipient_name!,
+        address_line1: order.recipient_address_line1!,
+        address_line2: order.recipient_address_line2 ?? undefined,
+        address_city: order.recipient_city!,
+        address_state: order.recipient_state!,
+        address_zip: order.recipient_postal_code!,
+        address_country: "US",
+      },
+      from: {
+        name: order.sender_name!,
+        address_line1: order.sender_address_line1!,
+        address_line2: order.sender_address_line2 ?? undefined,
+        address_city: order.sender_city!,
+        address_state: order.sender_state!,
+        address_zip: order.sender_postal_code!,
+        address_country: "US",
+      },
+      file: signedPdf,
+      metadata: {
+        order_id: orderId,
+        proof_level: normalizeProofLevel(order.proof_level),
+        template_title: String(order.template_title ?? ""),
+      },
+    });
+  } catch (error) {
+    await updateOrder(orderId, {
+      status: "failed_provider_submission",
+      failed_at: new Date().toISOString(),
+    });
+    await addOrderEvent(orderId, "provider.failed_submission", "Lob submission failed.", {
+      error: error instanceof Error ? error.message : "Unknown Lob submission error",
+    });
+    throw error;
+  }
 
   const rawResponse = result.raw as Record<string, unknown>;
   const expectedDeliveryDate =
@@ -239,15 +315,30 @@ export async function submitOrderToLob(orderId: string) {
       : typeof rawResponse?.target_delivery_date === "string"
         ? rawResponse.target_delivery_date
         : null;
+  const trackingNumber =
+    getStringValue(rawResponse?.tracking_number) ??
+    getStringValue(rawResponse?.trackingNumber);
+  const trackingEvents = getTrackingEvents(rawResponse?.tracking_events ?? rawResponse?.trackingEvents);
 
   await updateOrder(orderId, {
+    mail_provider: "lob",
+    provider_letter_id: result.id,
+    provider_tracking_number: trackingNumber,
+    provider_expected_delivery_date: expectedDeliveryDate,
+    provider_tracking_events: trackingEvents,
+    provider_raw_response: result.raw,
     lob_letter_id: result.id,
     lob_raw_response: result.raw,
     lob_expected_delivery_date: expectedDeliveryDate,
     submitted_to_provider_at: new Date().toISOString(),
     status: "provider_processing",
+    failed_at: null,
   });
-  await addOrderEvent(orderId, "provider.submitted", "Order submitted to mail partner.", { lob_letter_id: result.id });
+  await addOrderEvent(orderId, "provider.submitted", "Order submitted to mail partner.", {
+    lob_letter_id: result.id,
+    verification_status: recipientVerification.status,
+    lob_mode: getLobMode(),
+  });
 
   return result.id;
 }

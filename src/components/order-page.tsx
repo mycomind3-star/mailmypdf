@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { getDemoOrder } from "@/lib/demo-store";
 import { saveCustomerOrder } from "@/lib/customer-archive";
-import { formatDate, formatMoney } from "@/lib/utils";
+import { formatDate, formatDateTime, formatMoney } from "@/lib/utils";
 import { getProofLevelLabel } from "@/lib/proof-levels";
 import { StatusBadge } from "./status-badge";
 import { Button, Card } from "./ui";
@@ -25,10 +25,18 @@ type LiveOrderResponse = {
   priceCents: number | null;
   proofLevel: string | null;
   templateTitle: string | null;
+  mailProvider: string | null;
+  providerLetterId: string | null;
+  providerTrackingNumber: string | null;
+  providerExpectedDeliveryDate: string | null;
+  providerTrackingEvents: Array<Record<string, unknown>>;
+  addressVerificationStatus: string | null;
   createdAt: string;
   paidAt: string | null;
   submittedToProviderAt: string | null;
   mailedAt: string | null;
+  deliveredAt: string | null;
+  failedAt: string | null;
   lobExpectedDeliveryDate: string | null;
   lobTrackingEvents: Array<Record<string, unknown>>;
   downloadUrl: string | null;
@@ -182,6 +190,7 @@ export function OrderPage({ orderId, token }: OrderPageProps) {
     : demoOrder?.fileDataUrl ?? "data:application/pdf;base64,JVBERi0xLjQKJc...";
   const proofPacketHref =
     hasLiveStripe && token ? `/api/orders/${orderId}/proof-packet?token=${encodeURIComponent(token)}` : null;
+  const providerTrackingEvents = activeOrder.providerTrackingEvents ?? [];
 
   return (
     <div className="container-shell py-10 md:py-14">
@@ -208,6 +217,8 @@ export function OrderPage({ orderId, token }: OrderPageProps) {
               <SummaryItem label="Recipient city/state" value={`${activeOrder.recipientCity ?? "—"}, ${activeOrder.recipientState ?? "—"}`} />
               <SummaryItem label="Proof level" value={getProofLevelLabel(activeOrder.proofLevel ?? "standard")} />
               <SummaryItem label="Template" value={activeOrder.templateTitle ?? "—"} />
+              <SummaryItem label="Mail provider" value={activeOrder.mailProvider ?? "—"} />
+              <SummaryItem label="Verification" value={activeOrder.addressVerificationStatus ?? "—"} />
               <SummaryItem label="Price" value={formatMoney(activeOrder.priceCents ?? 0)} />
               <SummaryItem label="Created" value={formatDate(activeOrder.createdAt)} />
             </dl>
@@ -266,6 +277,34 @@ export function OrderPage({ orderId, token }: OrderPageProps) {
                 </p>
               </div>
             </div>
+          </Card>
+          <Card className="p-6">
+            <h2 className="text-lg font-semibold text-[color:var(--foreground)]">Mail tracking</h2>
+            <div className="mt-5 space-y-3 text-sm leading-6 text-[color:var(--muted)]">
+              <p><span className="font-semibold text-[color:var(--foreground)]">Provider letter ID:</span> {activeOrder.providerLetterId ?? "—"}</p>
+              <p><span className="font-semibold text-[color:var(--foreground)]">Tracking number:</span> {activeOrder.providerTrackingNumber ?? "—"}</p>
+              <p><span className="font-semibold text-[color:var(--foreground)]">Expected delivery:</span> {activeOrder.providerExpectedDeliveryDate ?? activeOrder.lobExpectedDeliveryDate ?? "—"}</p>
+              <p><span className="font-semibold text-[color:var(--foreground)]">Submitted:</span> {activeOrder.submittedToProviderAt ? formatDateTime(activeOrder.submittedToProviderAt) : "—"}</p>
+              <p><span className="font-semibold text-[color:var(--foreground)]">Mailed:</span> {activeOrder.mailedAt ? formatDateTime(activeOrder.mailedAt) : "—"}</p>
+              <p><span className="font-semibold text-[color:var(--foreground)]">Delivered:</span> {activeOrder.deliveredAt ? formatDateTime(activeOrder.deliveredAt) : "—"}</p>
+              <p><span className="font-semibold text-[color:var(--foreground)]">Returned / issue:</span> {activeOrder.failedAt ? formatDateTime(activeOrder.failedAt) : "—"}</p>
+            </div>
+            {providerTrackingEvents.length ? (
+              <div className="mt-5 space-y-3">
+                {providerTrackingEvents.slice(-3).reverse().map((event, index) => (
+                  <div
+                    key={`${String(event.event_id ?? index)}`}
+                    className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface-muted)] p-4 text-sm leading-6 text-[color:var(--muted)]"
+                  >
+                    <p className="font-semibold text-[color:var(--foreground)]">{String(event.event_type ?? "Tracking update")}</p>
+                    <p>{String(event.resource_status ?? event.status ?? "Update received")}</p>
+                    <p className="text-xs text-slate-500">
+                      {String(event.created_at ?? "") ? formatDateTime(String(event.created_at)) : "—"}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </Card>
           <OrderTimeline events={activeOrder.events ?? []} />
         </div>

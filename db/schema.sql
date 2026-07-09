@@ -27,10 +27,18 @@ create table public.orders (
   currency text default 'usd',
   stripe_checkout_session_id text,
   stripe_payment_intent_id text,
+  mail_provider text default 'lob',
   lob_letter_id text,
   lob_expected_delivery_date date,
   lob_tracking_events jsonb default '[]'::jsonb,
   lob_raw_response jsonb,
+  provider_letter_id text,
+  provider_tracking_number text,
+  provider_expected_delivery_date date,
+  provider_tracking_events jsonb default '[]'::jsonb,
+  provider_raw_response jsonb,
+  address_verification_status text,
+  address_verification_raw jsonb,
   upload_path text,
   final_pdf_path text,
   public_lookup_token text unique not null default encode(gen_random_bytes(32), 'hex'),
@@ -88,6 +96,7 @@ create index orders_email_idx on public.orders(email);
 create index orders_created_at_idx on public.orders(created_at desc);
 create index orders_stripe_session_idx on public.orders(stripe_checkout_session_id);
 create index orders_lob_letter_idx on public.orders(lob_letter_id);
+create index orders_provider_letter_idx on public.orders(provider_letter_id);
 create index order_events_order_id_idx on public.order_events(order_id);
 create index webhook_events_provider_event_id_idx on public.webhook_events(provider_event_id);
 

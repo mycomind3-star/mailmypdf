@@ -87,13 +87,16 @@ export async function POST(request: Request) {
         try {
           await submitOrderToLob(order.id);
         } catch (error) {
-          await updateOrder(order.id, {
-            status: "failed_provider_submission",
-            failed_at: new Date().toISOString(),
-          });
-          await addOrderEvent(order.id, "provider.failed_submission", "Lob submission failed.", {
-            error: error instanceof Error ? error.message : "Unknown Lob submission error",
-          });
+          const currentOrder = await findOrderById(order.id).catch(() => null);
+          if (currentOrder?.status !== "failed_provider_submission") {
+            await updateOrder(order.id, {
+              status: "failed_provider_submission",
+              failed_at: new Date().toISOString(),
+            });
+            await addOrderEvent(order.id, "provider.failed_submission", "Lob submission failed.", {
+              error: error instanceof Error ? error.message : "Unknown Lob submission error",
+            });
+          }
         }
       }
     }

@@ -15,7 +15,7 @@ export async function GET() {
   const { data, error } = await db
     .from("orders")
     .select(
-      "id,email,status,file_name,file_size_bytes,page_count,sender_name,sender_address_line1,sender_address_line2,sender_city,sender_state,sender_postal_code,recipient_name,recipient_address_line1,recipient_address_line2,recipient_city,recipient_state,recipient_postal_code,price_cents,proof_level,template_title,currency,stripe_checkout_session_id,lob_letter_id,created_at,paid_at,submitted_to_provider_at,mailed_at,delivered_at,failed_at,admin_notes",
+      "id,email,status,file_name,file_size_bytes,page_count,sender_name,sender_address_line1,sender_address_line2,sender_city,sender_state,sender_postal_code,recipient_name,recipient_address_line1,recipient_address_line2,recipient_city,recipient_state,recipient_postal_code,price_cents,proof_level,template_title,currency,stripe_checkout_session_id,lob_letter_id,lob_expected_delivery_date,lob_tracking_events,lob_raw_response,mail_provider,provider_letter_id,provider_tracking_number,provider_expected_delivery_date,provider_tracking_events,provider_raw_response,address_verification_status,address_verification_raw,created_at,paid_at,submitted_to_provider_at,mailed_at,delivered_at,failed_at,admin_notes",
     )
     .order("created_at", { ascending: false })
     .limit(100);
@@ -51,6 +51,17 @@ export async function GET() {
         currency: order.currency,
         stripeCheckoutSessionId: order.stripe_checkout_session_id,
         lobLetterId: order.lob_letter_id,
+        lobExpectedDeliveryDate: order.lob_expected_delivery_date,
+        lobTrackingEvents: Array.isArray(order.lob_tracking_events) ? order.lob_tracking_events : [],
+        lobRawResponse: order.lob_raw_response,
+        mailProvider: order.mail_provider,
+        providerLetterId: order.provider_letter_id,
+        providerTrackingNumber: order.provider_tracking_number,
+        providerExpectedDeliveryDate: order.provider_expected_delivery_date,
+        providerTrackingEvents: Array.isArray(order.provider_tracking_events) ? order.provider_tracking_events : [],
+        providerRawResponse: order.provider_raw_response,
+        addressVerificationStatus: order.address_verification_status,
+        addressVerificationRaw: order.address_verification_raw,
         createdAt: order.created_at,
         paidAt: order.paid_at,
         submittedToProviderAt: order.submitted_to_provider_at,

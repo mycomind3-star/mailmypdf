@@ -12,6 +12,7 @@ const serverEnvSchema = z.object({
   STRIPE_WEBHOOK_SECRET: optionalString,
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: optionalString,
   LOB_API_KEY: optionalString,
+  LOB_MODE: optionalString,
   LOB_WEBHOOK_SECRET: optionalString,
   AUTO_SUBMIT_TO_LOB: optionalString,
   RESEND_API_KEY: optionalString,
@@ -39,6 +40,14 @@ export function hasStripeEnv() {
 
 export function hasLobEnv() {
   return Boolean(getEnv().LOB_API_KEY);
+}
+
+export function getLobMode() {
+  return getEnv().LOB_MODE === "live" ? "live" : "test";
+}
+
+export function isLobTestMode() {
+  return getLobMode() === "test";
 }
 
 export function shouldAutoSubmitToLob() {
